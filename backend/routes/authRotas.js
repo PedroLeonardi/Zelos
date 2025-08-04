@@ -25,7 +25,7 @@ router.post('/login', (req, res, next) => {
           return res.status(500).json({ error: 'Erro ao criar sessão' });
         }
 
-        console.log('Usuário autenticado:', user.username);
+        console.log('Usuário autenticado:', user.displayName); //Alterado-------------
         return res.json({ 
           message: 'Autenticado com sucesso', 
           user: {
