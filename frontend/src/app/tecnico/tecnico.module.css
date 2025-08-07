@@ -1,0 +1,234 @@
+/* Animação de entrada para o container */
+.container {
+  animation: fadeIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.title {
+  color: var(--senai-red);
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 800;
+}
+
+.subtitle {
+  color: #555;
+  font-size: 1.1rem;
+  margin-top: 0.25rem;
+}
+
+/* Layout do Painel Kanban com Grid */
+.kanbanBoard {
+  display: grid;
+  /* Cria colunas responsivas que se ajustam automaticamente */
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.kanbanColumn {
+  background-color: var(--light-gray);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.columnTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.columnTitle h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--dark-gray);
+}
+
+.ticketCount {
+  background-color: #e0e0e0;
+  color: var(--dark-gray);
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 99px;
+}
+
+/* Estilo avançado do Card de Chamado */
+.ticketCard {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden; /* Importante para o pseudo-elemento */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.ticketCard:hover {
+  transform: translateY(-5px) scale(1.01);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Pseudo-elemento para a barra de prioridade */
+.ticketCard::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 6px;
+  height: 100%;
+  background-color: #ccc; /* Cor padrão */
+  transition: background-color 0.3s ease;
+}
+
+/* Variáveis para cores de prioridade */
+.ticketCard.high::before { background-color: var(--senai-red); }
+.ticketCard.medium::before { background-color: #ffc107; }
+.ticketCard.low::before { background-color: #17a2b8; }
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.ticketId {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #777;
+}
+
+.priorityTag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 5px;
+  color: var(--white);
+}
+
+/* Estilos das tags de prioridade */
+.high .priorityTag { background-color: var(--senai-red); }
+.medium .priorityTag { background-color: #ffc107; }
+.low .priorityTag { background-color: #17a2b8; }
+
+.cardTitle {
+  font-size: 1.1rem;
+  margin: 0 0 0.5rem 0;
+  color: var(--dark-gray);
+}
+
+.cardSector {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0 0 1rem 0;
+}
+
+.detailsButton {
+  width: 100%;
+  background: none;
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+  border-radius: 5px;
+  text-align: center;
+  cursor: pointer;
+  font-weight: 600;
+  color: #555;
+  transition: all 0.2s ease-in-out;
+}
+
+.detailsButton:hover {
+  background-color: var(--light-gray);
+  color: var(--senai-red);
+  border-color: var(--senai-red);
+}
+
+/* --- Estilos do Modal de Detalhes --- */
+.modalOverlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.6); display: flex;
+  justify-content: center; align-items: center; z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.modalContent {
+  background: var(--white); padding: 0;
+  border-radius: var(--border-radius);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  width: 90%; max-width: 600px;
+  animation: slide-up 0.4s ease;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes slide-up {
+  from { transform: translateY(30px) scale(0.95); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.modalHeader {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1rem 1.5rem; border-bottom: 1px solid #eee;
+}
+.modalHeader h2 {
+  color: var(--senai-red); margin: 0; font-size: 1.25rem;
+}
+
+.closeButton {
+  background: none; border: none; font-size: 2rem;
+  font-weight: 300; color: #aaa; cursor: pointer;
+}
+
+.modalBody {
+  padding: 1.5rem; overflow-y: auto;
+}
+
+.modalBody h3 { margin-top: 0; }
+.modalBody hr { border: 0; border-top: 1px solid #eee; margin: 1.5rem 0; }
+
+.apontamentosList {
+  max-height: 150px; overflow-y: auto;
+  background: var(--light-gray); padding: 0.5rem;
+  border-radius: 5px; margin-bottom: 1rem;
+}
+
+.apontamentoItem {
+  padding: 0.5rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+.apontamentoItem:last-child { border-bottom: none; }
+
+.apontamentoForm textarea {
+  width: 100%; padding: 0.75rem; border: 1px solid #ccc;
+  border-radius: 5px; font-size: 1rem; margin-bottom: 0.5rem;
+  resize: vertical;
+}
+
+.apontamentoForm button {
+  width: 100%; padding: 0.75rem; border: none;
+  background-color: var(--senai-red); color: var(--white);
+  font-weight: 600; border-radius: 5px; cursor: pointer;
+  transition: background-color 0.2s;
+}
+.apontamentoForm button:hover { background-color: var(--senai-red-darker); }
