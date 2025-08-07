@@ -1,0 +1,67 @@
+.sidebar {
+                    width: 250px;
+                    height: 100vh;
+                    background: var(--white);
+                    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.05);
+                    display: flex;
+                    flex-direction: column;
+                    padding: 2rem 0;
+                    position: sticky; /* Fixa a sidebar na rolagem */
+                    top: 0;
+                    transition: width 0.3s ease;
+                  }
+                  
+                  .logo {
+                    font-size: 2rem;
+                    font-weight: 800;
+                    color: var(--senai-red);
+                    text-align: center;
+                    margin-bottom: 2.5rem;
+                    letter-spacing: 2px;
+                  }
+                  
+                  .navList {
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                  }
+                  
+                  .navLink {
+                    display: block;
+                    color: var(--dark-gray);
+                    padding: 1rem 1.5rem;
+                    text-decoration: none;
+                    font-weight: 500;
+                    position: relative;
+                    transition: color 0.3s ease, background-color 0.3s ease;
+                  }
+                  
+                  /* Efeito de hover com pseudo-elemento */
+                  .navLink::before {
+                    content: '';
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    height: 100%;
+                    width: 5px;
+                    background-color: var(--senai-red);
+                    transform: scaleY(0);
+                    transform-origin: center;
+                    transition: transform 0.3s ease-in-out;
+                  }
+                  
+                  .navLink:hover {
+                    background-color: var(--light-gray);
+                    color: var(--senai-red);
+                  }
+                  
+                  .navLink:hover::before,
+                  .navLink.active::before {
+                    transform: scaleY(1);
+                  }
+                  
+                  .navLink.active {
+                    color: var(--senai-red);
+                    font-weight: 700;
+                    background-color: #fdebee; /* Um tom de vermelho bem claro */
+                  }

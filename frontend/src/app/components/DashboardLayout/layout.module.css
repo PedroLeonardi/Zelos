@@ -1,0 +1,26 @@
+/* /src/components/DashboardLayout/layout.module.css */
+
+.container {
+                    display: flex;
+                    justify-content: center;
+                    /* Centraliza o conteúdo horizontalmente */
+                    align-items: flex-start;
+                    /* Alinha o conteúdo no topo */
+                    min-height: 100vh;
+                    /* Garante que o layout ocupe a altura inteira da tela */
+                    padding: 20px;
+                    /* Adiciona espaçamento nas laterais para telas menores */
+                    background-color: var(--light-gray);
+                    /* Cor de fundo cinza claro, conforme solicitado */
+}
+
+.content {
+                    width: 100%;
+                    max-width: 900px;
+                    /* Define uma largura máxima para o conteúdo, evitando que ele fique muito esticado em telas grandes */
+                    display: flex;
+                    flex-direction: column;
+                    /* Organiza os itens internos (título, cards) em uma coluna */
+                    gap: 20px;
+                    /* Adiciona um espaço vertical consistente entre os elementos filhos */
+}

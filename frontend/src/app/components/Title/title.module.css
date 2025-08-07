@@ -1,0 +1,14 @@
+.title {
+                    color: var(--senai-red);
+                    font-size: 28px;
+                    font-weight: 700;
+                    margin-bottom: 24px;
+                    text-align: center;
+                  }
+                  
+                  @media (min-width: 768px) {
+                    .title {
+                      font-size: 32px;
+                      text-align: left;
+                    }
+                  }
