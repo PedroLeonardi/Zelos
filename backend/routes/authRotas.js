@@ -1,10 +1,11 @@
 import express from 'express';
 import passport from '../config/ldap.js';
+import teste from "../controllers/authControllerTeste.js"
 
 const router = express.Router();
 
 // Rota de Login
-router.post('/login', (req, res, next) => {
+router.post('/login', async (req, res, next) => {
   // Middleware de autenticação com tratamento de erros
   passport.authenticate('ldapauth', { session: true }, (err, user, info) => {
     try {
@@ -26,12 +27,29 @@ router.post('/login', (req, res, next) => {
         }
 
         console.log('Usuário autenticado:', user.displayName); //Alterado-------------
+
+        try {
+          
+          teste.createUserContr({           
+            nome: user.displayName,
+            RA: user.sAMAccountName,
+            email: user.userPrincipalName,
+            funcao: "TEM" //Alterar ------------------- 
+          })
+
+
+
+        } catch (err) {
+          console.error("Houve um erro no LDAP: ", err)
+        }
+
         return res.json({ 
           message: 'Autenticado com sucesso', 
           user: {
             username: user.username,
             displayName: user.displayName,
-            email: user.mail
+            email: user.mail,
+            teste:user //Alterado ------------------
           }
         });
       });
@@ -40,7 +58,7 @@ router.post('/login', (req, res, next) => {
       res.status(500).json({ error: 'Erro inesperado no servidor' });
     }
   })(req, res, next);
-});
+}, );
 
 // Rota de Logout
 router.post('/logout', (req, res) => {
