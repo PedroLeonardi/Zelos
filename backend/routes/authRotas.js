@@ -1,6 +1,8 @@
 import express from 'express';
+import jwt from "jsonwebtoken"
 import passport from '../config/ldap.js';
 import teste from "../controllers/authControllerTeste.js"
+import { JWT_SECRET } from '../config/jwt.js'; // Importar a chave secreta
 
 const router = express.Router();
 
@@ -28,8 +30,8 @@ router.post('/login', async (req, res, next) => {
 
         console.log('Usuário autenticado:', user.displayName); //Alterado-------------
 
+// Criação de um usuario na DB
         try {
-          
           teste.createUserContr({           
             nome: user.displayName,
             RA: user.sAMAccountName,
@@ -37,11 +39,15 @@ router.post('/login', async (req, res, next) => {
             funcao: "TEM" //Alterar ------------------- 
           })
 
-
-
         } catch (err) {
           console.error("Houve um erro no LDAP: ", err)
         }
+        // --------------------------------------- talvez mover de lugar
+    const token = jwt.sign({ id: user.sAMAccountName, tipo: user.displayName }, JWT_SECRET, {
+      expiresIn: '1h',
+    });
+
+    // -----------------------------
 
         return res.json({ 
           message: 'Autenticado com sucesso', 
@@ -49,6 +55,7 @@ router.post('/login', async (req, res, next) => {
             username: user.username,
             displayName: user.displayName,
             email: user.mail,
+            mensagem: `Login realizado com sucesso: ${token}`,  // ----------------- Possivel remover
             teste:user //Alterado ------------------
           }
         });
