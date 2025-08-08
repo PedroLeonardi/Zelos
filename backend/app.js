@@ -4,7 +4,7 @@ import session from 'express-session';
 import dotenv from 'dotenv';
 import authRotas from './routes/authRotas.js';
 import passport from './config/ldap.js';
-import testeRoutes from './routes/testeRotas.js'
+import chamados from './routes/chamadosRotas.js'
 // 1. Carrega variáveis de ambiente PRIMEIRO
 dotenv.config();
 
@@ -42,7 +42,7 @@ try {
 // 5. Rotas
 app.use('/auth', authRotas);
 
-app.use('/teste', testeRoutes) 
+app.use('/chamados', chamados)
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'online' });
