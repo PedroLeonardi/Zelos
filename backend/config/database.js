@@ -43,7 +43,7 @@ async function read(table, where) {
         }
 
         const [rows] = await connection.execute(sql);
-        return rows[0] || null;
+        return rows || null;
     } finally {
         connection.release();
     }

@@ -1,8 +1,8 @@
-import {createChamado, readFilterChamado, readAllChamados} from "../models/chamadosModel.js"
+import {createPool, readFilterPool, readAllPool, updatePool} from "../models/chamadosModel.js"
 
-const createChamadoContrroler = async (req, res) => {
+const createPoolContrroler = async (req, res) => {
     try {
-        await createChamado( req.body);
+        await createPool( req.body);
         return res.status(201).json({mensagem:"Chamado criado com sucesso"});
     } catch (err) {
         console.error("Erro ao criar chamado: ", err);
@@ -10,23 +10,34 @@ const createChamadoContrroler = async (req, res) => {
     };
 };
 
-const readFilterChamadoController = async (req,res) =>{
+const updatePoolController = async (req, res) => {
+    try{
+        await updatePool (req.body)
+        return res.status(200).json({mensagem: "Chamado atualizado com sucesso"})
+    } catch (err) {
+        console.error("Erro ao atualizar um chamado: ", err)
+        return res.status(400).json({mensagem: "Erro ao atualizar um chamado"})
+    }
+}
+
+
+const readFilterPoolController = async (req,res) =>{
     try {
-        return res.status(200).json( await readFilterChamado(req.body))
+        return res.status(200).json( await readFilterPool(req.body))
     } catch (err) {
         console.error("Erro ao Ler meus Chamdos: ", err)
         return res.status(400).json({mensagem:"Erro ao ler meus chamados"})
     }
         
 };
-const readAllChamadoController = async (req,res) =>{
+const readAllPoolController = async (req,res) =>{
     try {
         
-        return res.status(200).json({mensagem:await readAllChamados()})
+        return res.status(200).json({mensagem:await readAllPool()})
     } catch (err) {
         console.error("Erro ao Ler meus Chamdos: ", err)
         return res.status(400).json({mensagem:"Erro ao ler meus chamados"})
     }
 };
 
-export default{createChamadoContrroler, readFilterChamadoController, readAllChamadoController}
+export default{createPoolContrroler, readFilterPoolController, readAllPoolController}
