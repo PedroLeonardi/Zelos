@@ -49,4 +49,4 @@ const readAllChamadosController = async (req,res) =>{
     }
 };
 
-export default{createChamadosContrroler, readFilterChamadosController, readAllChamadosController, updateChamadosController}
+export default{createChamadosContrroler, readFilterChamadosController, readAllChamadosController, updateChamadosController, respondChamadosController}
