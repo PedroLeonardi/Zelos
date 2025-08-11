@@ -50,17 +50,18 @@ router.post('/login', async (req, res, next) => {
 
     // -----------------------------
     // router.get("/funcao", teste.readUserController )
-        
-        return teste.readUserController(user.sAMAccountName)
+        // const data = teste.readUserController({id_user: user.sAMAccountName})
+        // console.log(data)
+        // return res.json(data) //AQUI AQUI AQUI 
 
-    // return res.json({ 
-    //       message: 'Autenticado com sucesso', 
-    //       user: {
-    //         username: user.username,
-    //         displayName: user.displayName,
-    //         Token: token,  // ----------------- Possivel remover
-    //       }
-    //     });
+    return res.json({ 
+          message: 'Autenticado com sucesso', 
+          user: {
+            username: user.username,
+            displayName: user.displayName,
+            Token: token,  // ----------------- Possivel remover
+          }
+        });
       });
     } catch (error) {
       console.error('Erro inesperado:', error);

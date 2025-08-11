@@ -1,28 +1,28 @@
-import { readUser, createUser } from "../models/authModelTeste.js";
+import { readUser, createUser, readUserEmail } from "../models/authModelTeste.js";
 
-const readUserController = async (id_user) => {
+const readUserController = async (req, res) => {
     try {
-        const id = id_user;
-
+        const id = req.id_user;
+        console.log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", id)
         const data = await readUser(id); 
 
         if (!data) {
             return res.status(401).send({ mensagem: "Aluno não encontrado" });
         }
 
-        return res.status(200).json(data);
+        return res.json(data);
     } catch (err) {
         console.error("Houve um erro ao utilizar o controller user: ", err);
         return res.status(500).json({ erro: "Erro interno do servidor" });
     }
 };
 
-const createUserContr = async (teste) =>{
-    const data = teste
+const createUserContr = async (req, res) =>{
+    const data = req.teste
     try{
         await createUser(data)
-        // return res.status(200).json({mensagem:"Usuario criado com sucesso"})
-        return 
+        return res.status(200).json({mensagem:"Usuario criado com sucesso"})
+        
     } catch (err) {
         console.error("Erro ao criar usuario: ", err)
         throw err
