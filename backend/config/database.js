@@ -4,8 +4,8 @@ import bcrypt from 'bcryptjs';
 const pool = mysql.createPool({
     host: 'localhost',
     user: 'root',
-    password: 'senai@123',
-    database: 'zelo', 
+    password: '',
+    database: 'zelos', 
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
@@ -43,7 +43,7 @@ async function read(table, where) {
         }
 
         const [rows] = await connection.execute(sql);
-        return rows[0] || null;
+        return rows || null;
     } finally {
         connection.release();
     }

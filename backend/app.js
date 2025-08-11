@@ -4,7 +4,7 @@ import session from 'express-session';
 import dotenv from 'dotenv';
 import authRotas from './routes/authRotas.js';
 import passport from './config/ldap.js';
-
+import pool from './routes/poolRotas.js'
 // 1. Carrega variáveis de ambiente PRIMEIRO
 dotenv.config();
 
@@ -42,9 +42,13 @@ try {
 // 5. Rotas
 app.use('/auth', authRotas);
 
+app.use('/pool', pool)
+
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'online' });
 });
+
+
 
 // 6. Tratamento de erros robusto
 process.on('unhandledRejection', (reason, promise) => {

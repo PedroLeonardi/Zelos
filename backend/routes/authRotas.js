@@ -1,10 +1,13 @@
 import express from 'express';
+import jwt from "jsonwebtoken"
 import passport from '../config/ldap.js';
+import teste from "../controllers/authControllerTeste.js"
+import { JWT_SECRET } from '../config/jwt.js'; // Importar a chave secreta
 
 const router = express.Router();
 
 // Rota de Login
-router.post('/login', (req, res, next) => {
+router.post('/login', async (req, res, next) => {
   // Middleware de autenticação com tratamento de erros
   passport.authenticate('ldapauth', { session: true }, (err, user, info) => {
     try {
@@ -26,12 +29,34 @@ router.post('/login', (req, res, next) => {
         }
 
         console.log('Usuário autenticado:', user.displayName); //Alterado-------------
+
+// Criação de um usuario na DB
+        try {
+          teste.createUserContr({           
+            nome: user.displayName,
+            RA: user.sAMAccountName,
+            email: user.userPrincipalName,
+            funcao: "TEM" //Alterar ------------------- 
+          })
+
+        } catch (err) {
+          console.error("Houve um erro no LDAP: ", err)
+        }
+        // --------------------------------------- talvez mover de lugar
+    const token = jwt.sign({ id: user.sAMAccountName, tipo: user.displayName }, JWT_SECRET, {
+      expiresIn: '1h',
+    });
+
+    // -----------------------------
+
         return res.json({ 
           message: 'Autenticado com sucesso', 
           user: {
             username: user.username,
             displayName: user.displayName,
-            email: user.mail
+            email: user.mail,
+            mensagem: `Login realizado com sucesso: ${token}`,  // ----------------- Possivel remover
+            teste:user //Alterado ------------------
           }
         });
       });
@@ -40,7 +65,7 @@ router.post('/login', (req, res, next) => {
       res.status(500).json({ error: 'Erro inesperado no servidor' });
     }
   })(req, res, next);
-});
+}, );
 
 // Rota de Logout
 router.post('/logout', (req, res) => {
