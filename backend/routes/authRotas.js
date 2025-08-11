@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken"
 import passport from '../config/ldap.js';
 import teste from "../controllers/authControllerTeste.js"
 import { JWT_SECRET } from '../config/jwt.js'; // Importar a chave secreta
+import funcao from "../controllers/authControllerTeste.js"
 
 const router = express.Router();
 
@@ -48,17 +49,18 @@ router.post('/login', async (req, res, next) => {
     });
 
     // -----------------------------
+    // router.get("/funcao", teste.readUserController )
+        
+        return teste.readUserController(user.sAMAccountName)
 
-        return res.json({ 
-          message: 'Autenticado com sucesso', 
-          user: {
-            username: user.username,
-            displayName: user.displayName,
-            email: user.mail,
-            Token: token,  // ----------------- Possivel remover
-            teste:user //Alterado ------------------
-          }
-        });
+    // return res.json({ 
+    //       message: 'Autenticado com sucesso', 
+    //       user: {
+    //         username: user.username,
+    //         displayName: user.displayName,
+    //         Token: token,  // ----------------- Possivel remover
+    //       }
+    //     });
       });
     } catch (error) {
       console.error('Erro inesperado:', error);
@@ -107,5 +109,7 @@ router.get('/check-auth', (req, res) => {
   }
   res.status(401).json({ authenticated: false });
 });
+
+
 
 export default router;
