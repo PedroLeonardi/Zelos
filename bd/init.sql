@@ -1,14 +1,24 @@
-    -- Criação da tabela `usuarios`
+   create database zelo;
+   #drop database zelo;
+   use zelo;
+   
+   -- Criação da tabela `usuarios`
     CREATE TABLE usuarios (
         id INT AUTO_INCREMENT PRIMARY KEY,
         nome VARCHAR(255) NOT NULL,
-        senha VARCHAR(255) NOT NULL,
+        id_login VARCHAR(10) NOT NULL unique,
         email VARCHAR(255) NOT NULL UNIQUE,
         funcao VARCHAR(100) NOT NULL,
         status ENUM('ativo', 'inativo') DEFAULT 'ativo',
         criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     );
+
+#INsert into usuarios (nome, RA, email, funcao, status)value 
+#("a", "a" , "a", "a", "ativo");
+
+
+
 
     -- Criação da tabela `pool`
     CREATE TABLE pool (
@@ -46,8 +56,8 @@
         chamado_id INT,
         tecnico_id INT,
         descricao TEXT,
-        comeco TIMESTAMP NOT NULL,
-        fim TIMESTAMP NOT NULL,
+        comeco DATETIME NOT NULL,
+        fim DATETIME NOT NULL,
         duracao INT AS (TIMESTAMPDIFF(SECOND, comeco, fim)) STORED, -- Calcula a duração em segundos
         criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (chamado_id) REFERENCES chamados(id),
@@ -63,7 +73,72 @@
         FOREIGN KEY (id_tecnico) REFERENCES usuarios(id)
     );
 
+
+#------------------------------------------------------------------------------------
+
+-- Inserir dados na tabela `usuarios`
+INSERT INTO usuarios (nome, id_login, email, funcao, status)
+VALUES
+('Ana Silva', 'USR001', 'ana@example.com', 'Administradora', 'ativo'),
+('Carlos Souza', 'USR002', 'carlos@example.com', 'Técnico', 'ativo'),
+('Mariana Lima', 'USR003', 'mariana@example.com', 'Usuário', 'inativo');
+
+-- Inserir dados na tabela `pool`
+INSERT INTO pool (titulo, descricao, status, created_by, updated_by)
+VALUES
+('externo', 'Serviços externos diversos', 'ativo', 1, 1),
+('manutencao', 'Manutenção de equipamentos', 'ativo', 1, 2),
+('apoio_tecnico', 'Suporte técnico interno', 'inativo', 2, 1);
+
+-- Inserir dados na tabela `chamados`
+INSERT INTO chamados (titulo, descricao, tipo_id, tecnico_id, usuario_id, status)
+VALUES
+('Troca de lâmpada', 'Solicitação para troca de lâmpada no corredor', 2, 2, 3, 'pendente'),
+('Erro no sistema', 'Sistema apresentando falhas ao logar', 3, 2, 3, 'em andamento'),
+('Pintura externa', 'Solicitação para pintura do muro externo', 1, 1, 3, 'concluído');
+
+-- Inserir dados na tabela `apontamentos`
+INSERT INTO apontamentos (chamado_id, tecnico_id, descricao, comeco, fim)
+VALUES
+(1, 2, 'Trocada lâmpada queimada', '2025-08-11 08:00:00', '2025-08-11 08:20:00'),
+(2, 2, 'Correção de bug no sistema', '2025-08-11 09:00:00', '2025-08-11 10:15:00'),
+(3, 1, 'Preparação para pintura', '2025-08-11 11:00:00', '2025-08-11 13:30:00');
+
+select *from apontamentos;
+-- Inserir dados na tabela `pool_tecnico`
+INSERT INTO pool_tecnico (id_pool, id_tecnico)
+VALUES
+(1, 1), -- Técnico associado ao pool externo
+(2, 2), -- Técnico associado ao pool manutenção
+(3, 2); -- Técnico associado ao pool apoio técnico
+
+#-----------------------------------------------------------------------------------------
+
+
+CREATE OR REPLACE VIEW View_Chamados AS
+SELECT
+    c.id AS chamado_id,
+    c.titulo AS chamado_titulo,
+    c.descricao AS descricao,
+    c.status AS chamado_status,
+    c.criado_em AS data_criacao,
+    c.atualizado_em AS data_fechamento,
+    p.titulo AS tipo_chamado,
+    u.id AS tecnico_id,
+    u.nome AS tecnico_nome
+FROM chamados c
+LEFT JOIN pool p ON c.tipo_id = p.id
+LEFT JOIN pool_tecnico pt ON p.id = pt.id_pool
+LEFT JOIN usuarios u ON pt.id_tecnico = u.id;
+
+
+SELECT * FROM View_Chamados;
+
+
     -- Índices adicionais para otimização
     CREATE INDEX idx_usuarios_email ON usuarios(email);
     CREATE INDEX idx_chamados_status ON chamados(status);
     CREATE INDEX idx_apontamentos_comeco_fim ON apontamentos(comeco, fim);
+    
+    
+    #DROP DATABASE zelo;
