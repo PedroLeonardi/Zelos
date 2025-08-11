@@ -1,10 +1,10 @@
 import { readUser, createUser } from "../models/authModelTeste.js";
 
-const readUserController = async (req, res) => {
+const readUserController = async (id_user) => {
     try {
-        const email = req.body.email;
+        const id = id_user;
 
-        const data = await readUser(email); 
+        const data = await readUser(id); 
 
         if (!data) {
             return res.status(401).send({ mensagem: "Aluno não encontrado" });
