@@ -121,7 +121,7 @@
   max-width: 400px;
   display: flex;
   flex-direction: column;
-  gap: 1.6rem;
+  gap: 1.0rem;
 }
 
 /* Título */
@@ -245,7 +245,7 @@
   .input {
     background: #ffffff;
     border-color: #ff3333;
-    color: #fff;
+    color: #ff0000;
   }
   
   .input::placeholder {
@@ -267,4 +267,20 @@
     background: linear-gradient(90deg, #cc0000, #ff4444);
     box-shadow: 0 8px 25px #ff4444ff;
   }
+}
+
+
+.passwordWrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.eyeBtn {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
 }

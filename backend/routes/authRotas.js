@@ -55,7 +55,7 @@ router.post('/login', async (req, res, next) => {
             username: user.username,
             displayName: user.displayName,
             email: user.mail,
-            mensagem: `Login realizado com sucesso: ${token}`,  // ----------------- Possivel remover
+            Token: token,  // ----------------- Possivel remover
             teste:user //Alterado ------------------
           }
         });

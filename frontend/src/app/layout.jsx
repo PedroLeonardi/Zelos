@@ -1,7 +1,6 @@
 // /src/app/layout.js
 
 import './globals.css';
-import Sidebar from './components/Sidebar/Sidebar';
 
 // Metadata pode ser adicionada aqui
 export const metadata = {
@@ -13,12 +12,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="pt-BR">
       <body>
-        <div style={{ display: 'flex' }}>
-          <Sidebar />
-          <main style={{ flexGrow: 1, padding: '2rem' }}>
-            {children}
-          </main>
-        </div>
+        <main style={{ padding: '' }}>
+          {children}
+        </main>
       </body>
     </html>
   );

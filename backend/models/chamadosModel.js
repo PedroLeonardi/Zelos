@@ -61,4 +61,4 @@ const readFilterChamados = ( filter) => {
     }
 };
 
-export default {createChamados, readFilterChamados, readAllChamados, updateChamados, respondChamados};
+export {createChamados, readFilterChamados, readAllChamados, updateChamados, respondChamados};

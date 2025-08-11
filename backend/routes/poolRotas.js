@@ -1,11 +1,13 @@
 import express from "express"
 import user from "../controllers/poolController.js"
+import auth from "../middlewares/authMiddleware.js"
 
 const router = express.Router();
 
-router.get("/get", user.readAllPoolController)
-router.get("/post", user.createPoolContrroler)
+
+router.get("/get",  user.readAllPoolController)
 router.get("/getFilter", user.readFilterPoolController)
-router.put("/put", user.updatePoolController)
+router.post("/post", auth, user.createPoolContrroler)
+router.put("/put", auth, user.updatePoolController)
 
 export default router
