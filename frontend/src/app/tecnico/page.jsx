@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import styles from './tecnico.module.css';
+import Header from '../components/Header'; // ajusta o caminho conforme sua estrutura
 
 // Dados iniciais dos chamados (mantive igual)
 const initialChamados = [
@@ -177,6 +178,7 @@ export default function TecnicoDashboard() {
 
   return (
     <>
+      <Header />
       <div className={styles.container}>
         <header className={styles.header}>
           <h1 className={styles.header__title}>Kanban de Chamados</h1>
