@@ -18,7 +18,7 @@ const readUserController = async (req, res) => {
 };
 
 const createUserContr = async (req, res) =>{
-    const data = req.teste
+    const data = req.body
     try{
         await createUser(data)
         return res.status(200).json({mensagem:"Usuario criado com sucesso"})

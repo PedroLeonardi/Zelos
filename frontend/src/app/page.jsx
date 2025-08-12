@@ -30,13 +30,14 @@ export default function LoginPage() {
 
       if (!response.ok) {
         // Se a resposta não for OK (status 2xx), lança um erro com a mensagem do backend
-        throw new Error(data.message || "Falha no login. Verifique suas credenciais.");
+        throw new Error(data.error);
       }
 
       // **AQUI A MÁGICA ACONTECE**
       // Supondo que o seu backend retorne um objeto com a propriedade "role" ou "cargo".
       // Adapte a linha abaixo conforme a resposta real da sua API. Ex: data.user.role, data.tipo, etc.
-      const userRole = data.role; 
+      console.log(data.user.funcao)
+      const userRole = data.user.funcao; 
 
       // Redireciona o usuário com base no seu "role"
       if (userRole === "admin") {
