@@ -1,3 +1,4 @@
+
 :root {
   --senai-red: #d32f2f;
   --senai-red-darker: #b71c1c;
@@ -10,6 +11,7 @@
 }
 
 /* Animations */
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -32,6 +34,7 @@
   }
 }
 
+
 /* Container */
 .container {
   animation: fadeIn 0.5s ease-in-out;
@@ -43,6 +46,7 @@
 }
 
 /* Header */
+
 .header {
   align-items: center;
   display: flex;
@@ -60,6 +64,7 @@
 }
 
 /* Button Novo Chamado */
+
 .newTicketButton {
   align-items: center;
   background-color: var(--senai-red);
@@ -81,14 +86,18 @@
   transform: translateY(-3px);
 }
 
+
 /* Lista de Chamados */
+
 .ticketList {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-/* Item de Chamado */
+
+/* ======= Item de Chamado ======= */
+
 .ticketItem {
   align-items: center;
   background-color: var(--white);
@@ -114,11 +123,14 @@
 }
 
 /* Status - barra lateral + dot + texto */
+
 .ticketItem[data-status="Resolvido"] {
   border-left-color: #28a745;
 }
 
-.ticketItem[data-status="EmAnálise"] {
+
+.ticketItem[data-status="Em Análise"] {
+
   border-left-color: #ffc107;
 }
 
@@ -140,7 +152,9 @@
   background-color: #28a745;
 }
 
-.ticketItem[data-status="EmAnálise"] .statusDot {
+
+.ticketItem[data-status="Em Análise"] .statusDot {
+
   background-color: #ffc107;
 }
 
@@ -154,14 +168,17 @@
 
 .ticketStatus {
   font-size: 0.9rem;
-  font-weight: 700;
+  font-weight: 500;
+
 }
 
 .ticketItem[data-status="Resolvido"] .ticketStatus {
   color: #28a745;
 }
 
-.ticketItem[data-status="EmAnálise"] .ticketStatus {
+
+.ticketItem[data-status="Em Análise"] .ticketStatus {
+
   color: #b98e0a;
 }
 
@@ -173,22 +190,28 @@
   color: #007bff;
 }
 
-/* Modal Overlay */
+
+/* ======= Modal Overlay ======= */
+
 .modalOverlay {
   align-items: center;
   backdrop-filter: blur(5px);
   background: rgba(0, 0, 0, 0.6);
   display: flex;
-  height: 100vh;
+
+  height: 100%;
+
   justify-content: center;
   left: 0;
   position: fixed;
   top: 0;
-  width: 100vw;
+
+  width: 100%;
   z-index: 1000;
 }
 
-/* Modal Content */
+/* ======= Modal Content ======= */
+
 .modalContent {
   animation: slide-up 0.4s ease;
   background: var(--white);
@@ -205,7 +228,9 @@
   margin-top: 0;
 }
 
-/* Formulário */
+
+/* ======= Formulário do Modal ======= */
+
 .formGroup {
   margin-bottom: 1rem;
 }
@@ -236,7 +261,9 @@
   outline: none;
 }
 
+
 /* Modal Actions */
+
 .modalActions {
   display: flex;
   gap: 1rem;
@@ -244,7 +271,9 @@
   margin-top: 2rem;
 }
 
+
 /* Botão secundário */
+
 .buttonSecondary {
   background: #f0f0f0;
   border: 1px solid #ddd;
@@ -255,6 +284,8 @@
   padding: 0.75rem 1.5rem;
 }
 
+
 .buttonSecondary:hover {
   background: #e0e0e0;
 }
+

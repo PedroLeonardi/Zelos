@@ -3,30 +3,59 @@
 import React, { useState } from "react";
 import styles from "./page.module.css";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({ id: "", password: "" });
+  const [formData, setFormData] = useState({ username: "", password: "" });
+  const [error, setError] = useState(""); // Estado para armazenar e exibir mensagens de erro
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(""); // Limpa erros anteriores ao tentar fazer login novamente
 
-    // 🔴🔴🔴 Aqui vai a integração com o backend e banco de dados
-    // Exemplo:
-    // fetch("/api/login", {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify(formData)
-    // })
-    //   .then(res => res.json())
-    //   .then(data => console.log(data))
-    //   .catch(err => console.error(err));
+    try {
+      const response = await fetch("http://localhost:8080/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData)
+      });
 
-    console.log("Dados enviados:", formData);
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Se a resposta não for OK (status 2xx), lança um erro com a mensagem do backend
+        throw new Error(data.error);
+      }
+
+      // **AQUI A MÁGICA ACONTECE**
+      // Supondo que o seu backend retorne um objeto com a propriedade "role" ou "cargo".
+      // Adapte a linha abaixo conforme a resposta real da sua API. Ex: data.user.role, data.tipo, etc.
+      console.log(data.user.funcao)
+      const userRole = data.user.funcao; 
+
+      // Redireciona o usuário com base no seu "role"
+      if (userRole === "admin") {
+        router.push("/admin");
+      } else if (userRole === "tecnico") {
+        router.push("/tecnico");
+      } else if (userRole === "usuario") {
+        router.push("/usuario");
+      } else {
+        // Caso o "role" não seja nenhum dos esperados, exibe um erro.
+        throw new Error("Tipo de usuário desconhecido. Contate o suporte.");
+      }
+
+    } catch (err) {
+      console.error("Erro no login:", err);
+      // Define a mensagem de erro para ser exibida na tela
+      setError(err.message);
+    }
   };
 
   return (
@@ -54,20 +83,23 @@ export default function LoginPage() {
         <form className={styles.loginForm} onSubmit={handleSubmit} noValidate>
           <h1 className={styles.title}>Entrar</h1>
 
+          {/* Componente para exibir a mensagem de erro */}
+          {error && <p className={styles.errorMessage}>{error}</p>}
+
           {/* Campo ID */}
-          <label htmlFor="id" className={styles.label}>
+          <label htmlFor="username" className={styles.label}>
             ID
           </label>
           <input
             type="text"
-            id="id"
-            name="id"
+            id="username" // É uma boa prática o 'htmlFor' do label corresponder ao 'id' do input
+            name="username"
             placeholder="••••••••"
             required
             className={styles.input}
             autoComplete="username"
             maxLength={12}
-            value={formData.id}
+            value={formData.username}
             onChange={handleChange}
           />
 
@@ -78,7 +110,7 @@ export default function LoginPage() {
           <div style={{ position: "relative" }}>
             <input
               type={showPassword ? "text" : "password"}
-              id="password"
+              id="password" // É uma boa prática o 'htmlFor' do label corresponder ao 'id' do input
               name="password"
               placeholder="••••••••"
               required
@@ -109,9 +141,8 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <button type="submit" className={styles.btn}>
-            Entrar
-          </button>
+          <button type="submit" className={styles.btn}>Entrar</button>
+
         </form>
       </section>
     </main>

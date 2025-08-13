@@ -1,18 +1,33 @@
 import { read, create } from "../config/database.js"
 
-const readUser = async (email) => {
+const readUser = async (id) => {
     try {
-        const usuario = await read("usuarios", `email = '${email}'`)
+        const usuario = await read("usuarios", `RA = '${id}'`)
         if (!usuario) {
             return 'ERRO ao consultar'
         }
-        return await usuario
+        return usuario
 
     } catch (err) {
         console.error("Erro ao consultar o usuario ao sistema, erro: ", err)
         throw err
     }
 }
+
+const readUserEmail = async (email) => {
+    try {
+        const usuario = await read("usuarios", `emai = '${email}'`)
+        if (!usuario) {
+            return 'ERRO ao consultar'
+        }
+        return usuario
+
+    } catch (err) {
+        console.error("Erro ao consultar o usuario ao sistema, erro: ", err)
+        throw err
+    }
+}
+
 
 const createUser = async (data) =>{
     try {
@@ -31,4 +46,4 @@ const createUser = async (data) =>{
     }
 }
 
-export {readUser, createUser}
+export {readUser, createUser, readUserEmail}
