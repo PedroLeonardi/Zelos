@@ -1,12 +1,56 @@
-/* Animação de entrada para o container */
-.container {
-  animation: fadeIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+:root {
+  /* Cores Primárias */
+  --color-primary: #D32F2F;        /* SENAI Red */
+  --color-primary-dark: #B71C1C;   /* SENAI Red Darker */
+
+  /* Cores de UI (Interface do Usuário) */
+  --color-light-gray: #f8f8f8;
+  --color-medium-gray: #ddd;
+  --color-dark-gray: #333;
+  --color-text-default: #444;
+  --color-text-light: #666;
+  --color-white: #fff;
+  --color-border: #e0e0e0;
+
+  /* Cores de Status e Prioridade */
+  --color-priority-high: var(--color-primary);
+  --color-priority-medium: #ffc107;
+  --color-priority-low: #17a2b8;
+
+  /* Tipografia */
+  --font-family-base: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --font-size-base: 14px;
+  --font-weight-regular: 400;
+  --font-weight-bold: 600;
+  --font-weight-bolder: 700;
+
+  /* Layout e Espaçamento */
+  --spacing-xs: 0.25rem; /* 4px */
+  --spacing-sm: 0.5rem;  /* 8px */
+  --spacing-md: 1rem;    /* 16px */
+  --spacing-lg: 1.5rem;  /* 24px */
+  --border-radius: 6px;
+  --max-width-container: 1200px;
+  --transition-speed: 0.2s ease;
 }
 
+/* ========================================================================== */
+/* 2. ESTILOS DE BASE E ANIMAÇÕES                                             */
+/* ========================================================================== */
+
+body {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  color: var(--color-text-default);
+  background-color: var(--color-white);
+  line-height: 1.5;
+}
+
+/* Animação de entrada para containers */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -14,221 +58,325 @@
   }
 }
 
+/* ========================================================================== */
+/* 3. LAYOUT PRINCIPAL                                                         */
+/* ========================================================================== */
+
+.container {
+  max-width: var(--max-width-container);
+  margin: 0 auto;
+  padding: var(--spacing-lg) var(--spacing-md);
+  animation: fadeIn 0.4s ease forwards;
+}
+
 .header {
-  margin-bottom: 2rem;
+  margin-bottom: var(--spacing-lg);
 }
 
-.title {
-  color: var(--senai-red);
-  margin: 0;
-  font-size: 2.5rem;
-  font-weight: 800;
+.header__title {
+  font-size: 2rem;
+  font-weight: var(--font-weight-bolder);
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-xs);
 }
 
-.subtitle {
-  color: #555;
-  font-size: 1.1rem;
-  margin-top: 0.25rem;
-}
-
-/* Layout do Painel Kanban com Grid */
-.kanbanBoard {
-  display: grid;
-  /* Cria colunas responsivas que se ajustam automaticamente */
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1.5rem;
-}
-
-.kanbanColumn {
-  background-color: var(--light-gray);
-  border-radius: var(--border-radius);
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.columnTitle {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid #e0e0e0;
-}
-
-.columnTitle h2 {
-  margin: 0;
+.header__subtitle {
   font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: var(--dark-gray);
+  color: var(--color-text-light);
+  margin: 0;
+  font-weight: var(--font-weight-regular);
 }
 
-.ticketCount {
-  background-color: #e0e0e0;
-  color: var(--dark-gray);
-  font-weight: 700;
-  font-size: 0.8rem;
-  padding: 0.25rem 0.6rem;
-  border-radius: 99px;
+/* ========================================================================== */
+/* 4. COMPONENTE: KANBAN BOARD                                                 */
+/* ========================================================================== */
+
+.kanban {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-md);
 }
 
-/* Estilo avançado do Card de Chamado */
-.ticketCard {
-  background-color: var(--white);
+.kanban__column {
+  background-color: var(--color-light-gray);
   border-radius: var(--border-radius);
-  padding: 1rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  position: relative;
-  overflow: hidden; /* Importante para o pseudo-elemento */
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  padding: var(--spacing-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
 }
 
-.ticketCard:hover {
-  transform: translateY(-5px) scale(1.01);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-}
-
-/* Pseudo-elemento para a barra de prioridade */
-.ticketCard::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 6px;
-  height: 100%;
-  background-color: #ccc; /* Cor padrão */
-  transition: background-color 0.3s ease;
-}
-
-/* Variáveis para cores de prioridade */
-.ticketCard.high::before { background-color: var(--senai-red); }
-.ticketCard.medium::before { background-color: #ffc107; }
-.ticketCard.low::before { background-color: #17a2b8; }
-
-.cardHeader {
+.kanban__column-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.75rem;
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--color-border);
 }
 
-.ticketId {
-  font-weight: 700;
-  font-size: 0.9rem;
-  color: #777;
+.kanban__column-title {
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-bolder);
+  color: var(--color-dark-gray);
+  letter-spacing: 1.2px;
+  margin: 0;
+  text-transform: uppercase;
 }
 
-.priorityTag {
+.kanban__ticket-count {
+  background-color: var(--color-medium-gray);
+  color: var(--color-dark-gray);
+  font-weight: var(--font-weight-bolder);
   font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.2rem 0.6rem;
-  border-radius: 5px;
-  color: var(--white);
+  padding: 2px 8px;
+  border-radius: 50px;
 }
 
-/* Estilos das tags de prioridade */
-.high .priorityTag { background-color: var(--senai-red); }
-.medium .priorityTag { background-color: #ffc107; }
-.low .priorityTag { background-color: #17a2b8; }
+/* ========================================================================== */
+/* 5. COMPONENTE: TICKET CARD                                                  */
+/* ========================================================================== */
 
-.cardTitle {
-  font-size: 1.1rem;
-  margin: 0 0 0.5rem 0;
-  color: var(--dark-gray);
-}
-
-.cardSector {
-  font-size: 0.9rem;
-  color: #666;
-  margin: 0 0 1rem 0;
-}
-
-.detailsButton {
-  width: 100%;
-  background: none;
-  border: 1px solid #ddd;
-  padding: 0.5rem;
-  border-radius: 5px;
-  text-align: center;
-  cursor: pointer;
-  font-weight: 600;
-  color: #555;
-  transition: all 0.2s ease-in-out;
-}
-
-.detailsButton:hover {
-  background-color: var(--light-gray);
-  color: var(--senai-red);
-  border-color: var(--senai-red);
-}
-
-/* --- Estilos do Modal de Detalhes --- */
-.modalOverlay {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.6); display: flex;
-  justify-content: center; align-items: center; z-index: 1000;
-  backdrop-filter: blur(5px);
-}
-
-.modalContent {
-  background: var(--white); padding: 0;
+.ticket-card {
+  background: var(--color-white);
   border-radius: var(--border-radius);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  width: 90%; max-width: 600px;
-  animation: slide-up 0.4s ease;
-  max-height: 90vh;
+  padding: var(--spacing-sm);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-left: 5px solid var(--color-medium-gray); /* Borda padrão */
+  transition: transform var(--transition-speed), box-shadow var(--transition-speed);
   display: flex;
   flex-direction: column;
+  gap: var(--spacing-xs);
+  cursor: grab;
+  will-change: transform, box-shadow;
 }
 
-@keyframes slide-up {
-  from { transform: translateY(30px) scale(0.95); opacity: 0; }
-  to { transform: translateY(0) scale(1); opacity: 1; }
+.ticket-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
 }
 
-.modalHeader {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 1rem 1.5rem; border-bottom: 1px solid #eee;
+/* Modificadores de Prioridade */
+.ticket-card--priority-high {
+  border-left-color: var(--color-priority-high);
 }
-.modalHeader h2 {
-  color: var(--senai-red); margin: 0; font-size: 1.25rem;
+.ticket-card--priority-medium {
+  border-left-color: var(--color-priority-medium);
 }
-
-.closeButton {
-  background: none; border: none; font-size: 2rem;
-  font-weight: 300; color: #aaa; cursor: pointer;
+.ticket-card--priority-low {
+  border-left-color: var(--color-priority-low);
 }
 
-.modalBody {
-  padding: 1.5rem; overflow-y: auto;
+.ticket-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.modalBody h3 { margin-top: 0; }
-.modalBody hr { border: 0; border-top: 1px solid #eee; margin: 1.5rem 0; }
-
-.apontamentosList {
-  max-height: 150px; overflow-y: auto;
-  background: var(--light-gray); padding: 0.5rem;
-  border-radius: 5px; margin-bottom: 1rem;
+.ticket-card__id {
+  font-weight: var(--font-weight-bolder);
+  font-size: 0.75rem;
+  color: var(--color-text-light);
 }
 
-.apontamentoItem {
-  padding: 0.5rem;
-  border-bottom: 1px solid #e0e0e0;
+.ticket-card__title {
+  font-size: 1rem;
+  font-weight: var(--font-weight-bold);
+  margin: 0;
+  color: var(--color-dark-gray);
 }
-.apontamentoItem:last-child { border-bottom: none; }
 
-.apontamentoForm textarea {
-  width: 100%; padding: 0.75rem; border: 1px solid #ccc;
-  border-radius: 5px; font-size: 1rem; margin-bottom: 0.5rem;
+.ticket-card__sector {
+  font-size: 0.85rem;
+  color: var(--color-text-light);
+  line-height: 1.4;
+}
+
+.ticket-card__actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: flex-end;
+  margin-top: var(--spacing-sm);
+}
+
+/* ========================================================================== */
+/* 6. COMPONENTE: BOTÕES E TAGS                                                */
+/* ========================================================================== */
+
+.button {
+  font-size: 0.8rem;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 4px;
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background-color var(--transition-speed), color var(--transition-speed), border-color var(--transition-speed);
+  text-align: center;
+  text-decoration: none;
+}
+
+.button--primary {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+.button--primary:hover,
+.button--primary:focus {
+  background-color: var(--color-primary-dark);
+  color: var(--color-white);
+}
+
+.button--secondary {
+  background-color: transparent;
+  border-color: var(--color-medium-gray);
+  color: var(--color-text-light);
+}
+
+.button--secondary:hover,
+.button--secondary:focus {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background-color: rgba(211, 47, 47, 0.05);
+}
+
+.priority-tag {
+  font-size: 0.7rem;
+  font-weight: var(--font-weight-bold);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--color-white);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.priority-tag--high {
+  background-color: var(--color-priority-high);
+}
+
+.priority-tag--medium {
+  background-color: var(--color-priority-medium);
+  color: var(--color-dark-gray); /* Melhor contraste */
+}
+
+.priority-tag--low {
+  background-color: var(--color-priority-low);
+}
+
+/* ========================================================================== */
+/* 7. COMPONENTE: MODAL                                                       */
+/* ========================================================================== */
+.modal__overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1000;
+}
+
+
+
+.modal__content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--color-white);
+  border-radius: var(--border-radius);
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  z-index: 1001; /* acima do overlay */
+}
+
+.modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--spacing-sm);
+}
+
+.modal__title {
+  font-size: 1.5rem;
+  color: var(--color-primary);
+  margin: 0;
+  font-weight: var(--font-weight-bolder);
+}
+
+.modal__close-button {
+  font-size: 1.5rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-light);
+  cursor: pointer;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  padding: var(--spacing-xs);
+  border-radius: 50%;
+  transition: background-color var(--transition-speed), color var(--transition-speed);
+}
+
+.modal__close-button:hover,
+.modal__close-button:focus {
+  color: var(--color-primary);
+  background-color: var(--color-light-gray);
+}
+
+.modal__body p {
+  margin: var(--spacing-xs) 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* ========================================================================== */
+/* 8. COMPONENTE: FORMULÁRIOS                                                 */
+/* ========================================================================== */
+
+.form-group {
+  margin-bottom: var(--spacing-md);
+}
+
+.form-label {
+  font-weight: var(--font-weight-bold);
+  font-size: 0.9rem;
+  display: block;
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-dark-gray);
+}
+
+.form-textarea {
+  width: 100%;
+  min-height: 60px;
   resize: vertical;
+  padding: var(--spacing-sm);
+  font-size: 0.9rem;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-border);
+  font-family: inherit;
+  color: var(--color-text-default);
+  transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
 }
 
-.apontamentoForm button {
-  width: 100%; padding: 0.75rem; border: none;
-  background-color: var(--senai-red); color: var(--white);
-  font-weight: 600; border-radius: 5px; cursor: pointer;
-  transition: background-color 0.2s;
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.15);
 }
-.apontamentoForm button:hover { background-color: var(--senai-red-darker); }
+
+/* Botão de submissão do formulário no modal */
+.apontamento-form__button {
+  width: 100%;
+  margin-top: var(--spacing-sm);
+  padding-top: var(--spacing-sm);
+  padding-bottom: var(--spacing-sm);
+  font-size: 1rem;
+}
