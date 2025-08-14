@@ -2,7 +2,7 @@ import { read, create } from "../config/database.js"
 
 const readUser = async (id) => {
     try {
-        const usuario = await read("usuarios", `RA = '${id}'`)
+        const usuario = await read("usuarios", `id_login = '${id}'`)
         if (!usuario) {
             return 'ERRO ao consultar'
         }
@@ -33,7 +33,7 @@ const createUser = async (data) =>{
     try {
          const dataUsuario = {
             nome: data.nome,
-            RA: data.RA,
+            id_login: data.RA,
             email: data.email,
             funcao: data.funcao
          }
