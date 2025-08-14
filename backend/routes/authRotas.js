@@ -30,7 +30,7 @@ router.post('/login', (req, res, next) => {
           const dadosNovoUsuario = {
             nome: user.displayName,
             RA: user.sAMAccountName,
-            email: null,
+            email: user.name,
             funcao: "tecnico"// --------------------------------------------------------------------------------------------------------------------
           };
           await createUser(dadosNovoUsuario);

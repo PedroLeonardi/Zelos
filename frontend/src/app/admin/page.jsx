@@ -33,7 +33,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchChamados = async () => {
       try {
-        const response = await fetch('http://localhost:8080/chamados/get');
+        const response = await fetch('http://localhost:8080/relatorio/get');
         if (!response.ok) {
           throw new Error('Falha ao buscar os dados da API');
         }
@@ -44,11 +44,11 @@ export default function AdminDashboard() {
         if (data && Array.isArray(data.mensagem)) {
           // Precisamos mapear os campos da sua API para os nomes que o front-end espera
           const chamadosMapeados = data.mensagem.map(item => ({
-            id: `#${item.id}`, // O front espera um ID com '#'
-            titulo: item.titulo,
+            id: `#${item.chamado_id}`, // O front espera um ID com '#'
+            titulo: item.chamado_titulo,
             // O front espera 'tecnico' e a API envia 'tecnico_id'. Precisamos ajustar isso.
             // Por enquanto, vamos deixar em branco ou usar o ID.
-            tecnico: item.tecnico_id ? `Técnico ID: ${item.tecnico_id}` : '', // Ajuste temporário
+            tecnico: item.tecnico_id ? `Técnico: ${item.tecnico_nome}, ID:${item.tecnico_id}` : '', // Ajuste temporário
             status: item.status || 'Pendente', // Se a API não envia status, definimos um padrão
             criado_em: item.data_criacao ? item.data_criacao.split('T')[0] : new Date().toISOString().split('T')[0], // Ajuste o nome do campo se necessário
           }));
