@@ -1,40 +1,92 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react'; // ✨ Adicionado useEffect
 import styles from './admin.module.css';
 
-const mockChamadosInit = [
-  { id: '#7821', titulo: 'Reparo Impressora 3D', tecnico: 'Carlos Souza', status: 'Em Andamento', criado_em: '2025-08-01' },
-  { id: '#7815', titulo: 'Manutenção Torno CNC', tecnico: 'Carlos Souza', status: 'Concluído', criado_em: '2025-07-30' },
-  { id: '#7820', titulo: 'Instalar Software CAD', tecnico: 'Ana Pereira', status: 'Pendente', criado_em: '2025-08-02' },
-  { id: '#7809', titulo: 'Troca de Lâmpadas', tecnico: 'Carlos Souza', status: 'Concluído', criado_em: '2025-07-25' },
-  { id: '#7822', titulo: 'Verificar Ponto de Rede', tecnico: 'Ana Pereira', status: 'Em Andamento', criado_em: '2025-08-03' },
-];
+// 🗑️ mockChamadosInit foi removido daqui.
+
 const mockUsuarios = [
   { id: 1, nome: 'Carlos Souza', funcao: 'Técnico', status: 'ativo' },
   { id: 2, nome: 'Ana Pereira', funcao: 'Técnico', status: 'ativo' },
   { id: 3, nome: 'Maria Silva', funcao: 'Usuário', status: 'inativo' },
 ];
 
+
+
 export default function AdminDashboard() {
+  // ... outros useState
+
+  // ✨ --- useEffect CORRIGIDO para buscar dados da API --- ✨
+
+
   const [filter, setFilter] = useState('todos');
-  const [chamados, setChamados] = useState(mockChamadosInit);
+  // ✨ O estado inicial de 'chamados' agora é um array vazio.
+  const [chamados, setChamados] = useState([]); 
+  const [loading, setLoading] = useState(true); // ✨ Novo estado para controlar o carregamento
+  const [error, setError] = useState(null); // ✨ Novo estado para controlar erros
+  
   const [editId, setEditId] = useState(null);
   const [editTitulo, setEditTitulo] = useState('');
   const [editTecnico, setEditTecnico] = useState('');
 
+  // ✨ --- NOVO: useEffect para buscar dados da API --- ✨
+  useEffect(() => {
+    const fetchChamados = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/chamados/get');
+        if (!response.ok) {
+          throw new Error('Falha ao buscar os dados da API');
+        }
+        const data = await response.json(); // 'data' é o objeto { mensagem: [...] }
+
+        // ✨ AQUI ESTÁ A CORREÇÃO PRINCIPAL ✨
+        // Acessamos a propriedade 'mensagem' que contém o array.
+        if (data && Array.isArray(data.mensagem)) {
+          // Precisamos mapear os campos da sua API para os nomes que o front-end espera
+          const chamadosMapeados = data.mensagem.map(item => ({
+            id: `#${item.id}`, // O front espera um ID com '#'
+            titulo: item.titulo,
+            // O front espera 'tecnico' e a API envia 'tecnico_id'. Precisamos ajustar isso.
+            // Por enquanto, vamos deixar em branco ou usar o ID.
+            tecnico: item.tecnico_id ? `Técnico ID: ${item.tecnico_id}` : '', // Ajuste temporário
+            status: item.status || 'Pendente', // Se a API não envia status, definimos um padrão
+            criado_em: item.data_criacao ? item.data_criacao.split('T')[0] : new Date().toISOString().split('T')[0], // Ajuste o nome do campo se necessário
+          }));
+          setChamados(chamadosMapeados); // ✅ Corrigido!
+        } else {
+          // Medida de segurança caso a API mude a resposta
+          console.warn("A resposta da API não continha um array na chave 'mensagem'.");
+          setChamados([]);
+        }
+
+      } catch (err) {
+        setError(err.message);
+        console.error("Erro ao buscar chamados:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchChamados();
+  }, []); // O array vazio [] garante que isso rode apenas uma vez
+
   const filteredChamados = useMemo(() => {
     if (filter === 'todos') return chamados;
+    if (filter === 'semAtribuicao') {
+      return chamados.filter(c => !c.tecnico);
+    }
     return chamados.filter(c => c.status === filter);
   }, [filter, chamados]);
 
   const stats = useMemo(() => ({
     total: chamados.length,
+    semAtribuicao: chamados.filter(c => !c.tecnico).length,
     pendente: chamados.filter(c => c.status === 'Pendente').length,
     'Em Andamento': chamados.filter(c => c.status === 'Em Andamento').length,
     concluido: chamados.filter(c => c.status === 'Concluído').length,
   }), [chamados]);
 
+  // ... (o resto das suas funções permanece igual)
   const atualizarStatus = (id, novoStatus) => {
     setChamados(prev => prev.map(c => c.id === id ? { ...c, status: novoStatus } : c));
   };
@@ -58,21 +110,18 @@ export default function AdminDashboard() {
     }
   };
 
-  // Começa edição
   const startEdit = (chamado) => {
     setEditId(chamado.id);
     setEditTitulo(chamado.titulo);
     setEditTecnico(chamado.tecnico);
   };
 
-  // Cancela edição
   const cancelEdit = () => {
     setEditId(null);
     setEditTitulo('');
     setEditTecnico('');
   };
 
-  // Salva edição
   const saveEdit = () => {
     setChamados(prev => prev.map(c => 
       c.id === editId ? { ...c, titulo: editTitulo, tecnico: editTecnico } : c
@@ -80,17 +129,28 @@ export default function AdminDashboard() {
     cancelEdit();
   };
 
+  // ✨ --- NOVO: Lógica para exibir mensagens de carregamento e erro --- ✨
+  if (loading) {
+    return <div className={styles.centeredMessage}>⏳ Carregando chamados...</div>;
+  }
+
+  if (error) {
+    return <div className={`${styles.centeredMessage} ${styles.error}`}>🆘 Erro: {error}</div>;
+  }
+
   return (
     <div className={styles.dashboardWithSidebar}>
       <header className={styles.header}>
         <h1 className={styles.title}>Painel de Controle do Administrador</h1>
       </header>
 
+      {/* ... O resto do seu JSX permanece o mesmo ... */}
       <section className={styles.statsGrid}>
         <div className={styles.statsCard}><h4>Total de Chamados</h4><p>{stats.total}</p></div>
         <div className={styles.statsCard}><h4>Pendentes</h4><p>{stats.pendente}</p></div>
         <div className={styles.statsCard}><h4>Em Andamento</h4><p>{stats['Em Andamento']}</p></div>
         <div className={styles.statsCard}><h4>Concluídos</h4><p>{stats.concluido}</p></div>
+        <div className={styles.statsCard}><h4>Sem atribuição</h4><p>{stats.semAtribuicao}</p></div>
       </section>
 
       <div className={styles.mainWithSidebar}>
@@ -102,10 +162,11 @@ export default function AdminDashboard() {
               <button onClick={() => setFilter('Pendente')} className={filter === 'Pendente' ? styles.activeFilter : ''}>Pendentes</button>
               <button onClick={() => setFilter('Em Andamento')} className={filter === 'Em Andamento' ? styles.activeFilter : ''}>Em Andamento</button>
               <button onClick={() => setFilter('Concluído')} className={filter === 'Concluído' ? styles.activeFilter : ''}>Concluídos</button>
+              <button onClick={() => setFilter('semAtribuicao')} className={filter === 'semAtribuicao' ? styles.activeFilter : ''}>Sem Atribuição</button>
               <button onClick={adicionarChamado} className={styles.addButton}>+ Novo Chamado</button>
             </div>
           </div>
-
+          
           <div className={styles.reportTable}>
             <div className={`${styles.tableRow} ${styles.headerRow}`}>
               <div>Chamado ID</div>
@@ -136,6 +197,7 @@ export default function AdminDashboard() {
                 <div>
                   {editId === chamado.id ? (
                     <select value={editTecnico} onChange={e => setEditTecnico(e.target.value)}>
+                      <option value="">Nenhum</option>
                       {mockUsuarios.filter(u => u.funcao === 'Técnico' && u.status === 'ativo').map(user => (
                         <option key={user.id} value={user.nome}>{user.nome}</option>
                       ))}
@@ -174,6 +236,10 @@ export default function AdminDashboard() {
                 </div>
               </div>
             ))}
+            {/* ✨ Mensagem para quando não houver chamados */}
+            {chamados.length === 0 && !loading && (
+              <div className={styles.centeredMessage}>Nenhum chamado encontrado.</div>
+            )}
           </div>
         </section>
 
@@ -192,3 +258,20 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
+// ✨ Adicione alguns estilos para as mensagens de carregamento e erro no seu CSS (admin.module.css)
+/*
+.centeredMessage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  font-size: 1.2rem;
+  color: #555;
+}
+
+.error {
+  color: #d9534f;
+  font-weight: bold;
+}
+*/

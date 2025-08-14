@@ -381,3 +381,17 @@
   scrollbar-width: thin;
   scrollbar-color: var(--senai-red) var(--gray-light);
 }
+
+.centeredMessage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  font-size: 1.2rem;
+  color: #555;
+}
+
+.error {
+  color: #d9534f;
+  font-weight: bold;
+}
