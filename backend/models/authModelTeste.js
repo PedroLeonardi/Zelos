@@ -6,7 +6,7 @@ const readUser = async (id) => {
         if (!usuario) {
             return 'ERRO ao consultar'
         }
-        return await usuario
+        return usuario
 
     } catch (err) {
         console.error("Erro ao consultar o usuario ao sistema, erro: ", err)
@@ -16,11 +16,11 @@ const readUser = async (id) => {
 
 const readUserEmail = async (email) => {
     try {
-        const usuario = await read("usuarios", `emai = '${id}'`)
+        const usuario = await read("usuarios", `emai = '${email}'`)
         if (!usuario) {
             return 'ERRO ao consultar'
         }
-        return await usuario
+        return usuario
 
     } catch (err) {
         console.error("Erro ao consultar o usuario ao sistema, erro: ", err)
@@ -46,4 +46,4 @@ const createUser = async (data) =>{
     }
 }
 
-export {readUser, createUser}
+export {readUser, createUser, readUserEmail}
