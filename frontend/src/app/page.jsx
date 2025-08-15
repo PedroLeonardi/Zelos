@@ -34,7 +34,7 @@ export default function LoginPage() {
       }
 
       // **AQUI A MÁGICA ACONTECE**
-      // Supondo que o seu backend retorne um objeto com a propriedade "role" ou "cargo".
+      // Supondo que o  backend retorne um objeto com a propriedade "role" ou "cargo".
       // Adapte a linha abaixo conforme a resposta real da sua API. Ex: data.user.role, data.tipo, etc.
       console.log(data.user.funcao)
       const userRole = data.user.funcao; 

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import styles from './usuario.module.css';
-import Header from '../components/Header'; // ajusta o caminho
+import Header from '../components/Header';
 
 const PlusIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -12,20 +12,27 @@ const PlusIcon = () => (
 );
 
 const initialTickets = [
-  { id: '#7798', title: 'Lâmpada queimada na sala 302', status: 'Resolvido' },
-  { id: '#7815', title: 'Computador não liga no Lab 05', status: 'Em Análise' },
-  { id: '#7820', title: 'Solicitação de software', status: 'Aguardando' },
+  { id: '#7798', title: 'Lâmpada queimada na sala 302', status: 'Resolvido', description: 'Lâmpada substituída com sucesso, sala ficou totalmente iluminada.', type: 'limpeza', createdAt: '2025-08-10T10:30' },
+  { id: '#7815', title: 'Computador não liga no Lab 05', status: 'Em Análise', description: 'Verificando problema de hardware e possíveis substituições de peças.', type: 'manutencao', createdAt: '2025-08-11T09:15' },
+  { id: '#7820', title: 'Solicitação de software', status: 'Aguardando', description: 'Instalar software CAD em todas as estações do Lab 07.', type: 'apoio_tecnico', createdAt: '2025-08-12T14:50' },
 ];
 
 export default function UsuarioDashboard() {
   const [tickets, setTickets] = useState(initialTickets);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTicket, setNewTicket] = useState({ title: '', description: '', type: 'manutencao' });
+  const [toasters, setToasters] = useState([]);
+
+  const addToaster = (message, type = 'success') => {
+    const id = Date.now();
+    setToasters(prev => [...prev, { id, message, type }]);
+    setTimeout(() => setToasters(prev => prev.filter(t => t.id !== id)), 4000);
+  };
 
   const handleCreateTicket = (e) => {
     e.preventDefault();
     if (!newTicket.title.trim() || !newTicket.description.trim()) {
-      alert('Preencha todos os campos, mano.');
+      addToaster('Preenche todos os campos, mano.', 'error');
       return;
     }
     const createdTicket = {
@@ -34,10 +41,32 @@ export default function UsuarioDashboard() {
       status: 'Pendente',
       description: newTicket.description.trim(),
       type: newTicket.type,
+      createdAt: new Date().toISOString(),
     };
     setTickets([createdTicket, ...tickets]);
     setIsModalOpen(false);
     setNewTicket({ title: '', description: '', type: 'manutencao' });
+    addToaster(`Chamado ${createdTicket.id} criado na moral!`);
+  };
+
+  const getStatusColor = (status) => {
+    switch(status) {
+      case 'Resolvido': return '#28a745';
+      case 'Em Análise': return '#ffc107';
+      case 'Aguardando': return '#fd7e14';
+      case 'Pendente': return '#007bff';
+      default: return '#ccc';
+    }
+  };
+
+  const getTypeColor = (type) => {
+    switch(type) {
+      case 'manutencao': return '#1976d2';
+      case 'apoio_tecnico': return '#6f42c1';
+      case 'limpeza': return '#20c997';
+      case 'externo': return '#fd7e14';
+      default: return '#888';
+    }
   };
 
   return (
@@ -111,18 +140,40 @@ export default function UsuarioDashboard() {
           {tickets.map((ticket) => (
             <div
               key={ticket.id}
-              className={styles.ticketItem}
-              data-status={ticket.status.replace(' ', '')}
-              title={ticket.description ? ticket.description : ''}
+              className={styles.ticketCard}
+              style={{ borderLeftColor: getStatusColor(ticket.status) }}
             >
-              <span className={styles.statusDot}></span>
-              <p className={styles.ticketInfo}>
-                <strong>{ticket.id}</strong> - {ticket.title}
-              </p>
-              <span className={styles.ticketStatus}>{ticket.status}</span>
+              <div className={styles.ticketHeader}>
+                <div className={styles.ticketId}>{ticket.id}</div>
+                <div className={styles.ticketTypeBadge} style={{ backgroundColor: getTypeColor(ticket.type) }}>
+                  {ticket.type.replace('_',' ')}
+                </div>
+              </div>
+              <h3 className={styles.ticketTitle}>{ticket.title}</h3>
+              <p className={styles.ticketDescription}>{ticket.description}</p>
+              <div className={styles.ticketFooter}>
+                <span className={styles.ticketStatus} style={{ color: getStatusColor(ticket.status) }}>
+                  {ticket.status}
+                </span>
+                <span className={styles.ticketDate}>
+                  {new Date(ticket.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                </span>
+              </div>
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Toasts */}
+      <div className={styles.toasterContainer}>
+        {toasters.map(t => (
+          <div key={t.id} className={`${styles.toaster} ${styles[`toaster-${t.type}`]}`}>
+            {t.message}
+            <span className={styles['toaster-close']} onClick={() => setToasters(prev => prev.filter(x => x.id !== t.id))}>
+              &times;
+            </span>
+          </div>
+        ))}
       </div>
     </>
   );

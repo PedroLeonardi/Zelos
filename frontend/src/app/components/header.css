@@ -1,0 +1,79 @@
+:root {
+                    --senai-red: #d32f2f;
+                    --white: #fff;
+                    --box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+                    --border-radius: 6px;
+                  }
+                  
+                  /* Header */
+                  .app-header {
+                    background-color: var(--senai-red);
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 0 1.5rem;
+                    height: 70px;
+                    box-shadow: var(--box-shadow);
+                    position: sticky;
+                    top: 0;
+                    z-index: 999;
+                    transition: all 0.3s ease;
+                  }
+                  
+                  /* Logo e username */
+                  .logo-container {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+                  }
+                  
+                  .logo {
+                    height: 45px;
+                    object-fit: contain;
+                    cursor: pointer;
+                    transition: transform 0.2s ease, filter 0.2s ease;
+                  }
+                  
+                  .logo:hover {
+                    transform: scale(1.1);
+                    filter: brightness(1.2);
+                  }
+                  
+                  .username {
+                    color: var(--white);
+                    font-weight: 600;
+                    font-size: 1rem;
+                  }
+                  
+                  /* Botão de logout */
+                  .logout-button {
+                    background: transparent;
+                    border: none;
+                    cursor: pointer;
+                    padding: 0.25rem;
+                    border-radius: var(--border-radius);
+                    transition: background 0.2s, transform 0.1s;
+                  }
+                  
+                  .logout-button:hover {
+                    background: rgba(255, 255, 255, 0.15);
+                    transform: scale(1.05);
+                  }
+                  
+                  .logout-icon {
+                    height: 30px;
+                    width: 30px;
+                    transition: transform 0.2s ease;
+                  }
+                  
+                  .logout-button:hover .logout-icon {
+                    transform: rotate(15deg) scale(1.1);
+                  }
+                  
+                  /* Responsividade */
+                  @media (max-width: 480px) {
+                    .username {
+                      display: none;
+                    }
+                  }
+                  

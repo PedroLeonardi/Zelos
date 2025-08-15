@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import styles from './tecnico.module.css';
-import Header from '../components/Header'; // ajusta o caminho conforme sua estrutura
+import Header from '../components/Header';
 
-// Dados iniciais dos chamados (mantive igual)
+// Dados iniciais dos chamados
 const initialChamados = [
   { id: '#7821', titulo: 'Reparo Impressora 3D', setor: 'Laboratório de Manufatura', status: 'pendente', atribuido: false, tecnico_id: null, prioridade: 'high', relatorio: null },
   { id: '#7820', titulo: 'Instalar Software CAD', setor: 'Sala de Desenho Técnico', status: 'pendente', atribuido: false, tecnico_id: null, prioridade: 'medium', relatorio: null },
@@ -61,6 +61,13 @@ export default function TecnicoDashboard() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [relatorioForm, setRelatorioForm] = useState({ descricao: '', comeco: '', fim: '' });
+  const [toasters, setToasters] = useState([]);
+
+  const addToaster = (message, type = 'success') => {
+    const id = Date.now();
+    setToasters(prev => [...prev, { id, message, type }]);
+    setTimeout(() => setToasters(prev => prev.filter(t => t.id !== id)), 3500);
+  };
 
   const handleOpenModal = (ticket) => {
     setSelectedTicket(ticket);
@@ -75,30 +82,31 @@ export default function TecnicoDashboard() {
 
   const handleRelatorioChange = (e) => {
     const { id, value } = e.target;
-    setRelatorioForm((prev) => ({ ...prev, [id]: value }));
+    setRelatorioForm(prev => ({ ...prev, [id]: value }));
   };
 
   const handleAutoAtribuir = (ticketId) => {
-    setChamados((prev) =>
-      prev.map((t) =>
+    setChamados(prev =>
+      prev.map(t =>
         t.id === ticketId ? { ...t, status: 'em andamento', atribuido: true, tecnico_id: LOGGED_IN_TECNICO.id } : t
       )
     );
+    addToaster(`Você se atribuiu ao chamado ${ticketId} na moral!`, 'success');
   };
 
   const handleFinalizarChamado = (e) => {
     e.preventDefault();
     const { descricao, comeco, fim } = relatorioForm;
     if (!descricao.trim() || !comeco || !fim) {
-      alert('Preenche tudo aí, caralho: Descrição, Começo e Fim.');
+      addToaster('Preenche tudo aí, caralho: Descrição, Começo e Fim.', 'error');
       return;
     }
-    setChamados((prev) =>
-      prev.map((t) =>
+    setChamados(prev =>
+      prev.map(t =>
         t.id === selectedTicket.id ? { ...t, status: 'concluído', relatorio: relatorioForm } : t
       )
     );
-    alert(`Chamado ${selectedTicket.id} finalizado na moral!`);
+    addToaster(`Chamado ${selectedTicket.id} finalizado na moral!`, 'success');
     handleCloseModal();
   };
 
@@ -209,7 +217,7 @@ export default function TecnicoDashboard() {
         </main>
       </div>
 
-      {/* Modal fora do container pra não limitar largura */}
+      {/* Modal */}
       {modalOpen && selectedTicket && (
         <div className={styles.modal__overlay} onClick={handleCloseModal}>
           <div
@@ -240,6 +248,16 @@ export default function TecnicoDashboard() {
           </div>
         </div>
       )}
+
+      {/* Toaster Container */}
+      <div className={styles['toaster-container']}>
+        {toasters.map(t => (
+          <div key={t.id} className={`${styles.toaster} ${styles[`toaster-${t.type}`]}`}>
+            {t.message}
+            <span className={styles['toaster-close']} onClick={() => setToasters(prev => prev.filter(x => x.id !== t.id))}>&times;</span>
+          </div>
+        ))}
+      </div>
     </>
   );
 }
