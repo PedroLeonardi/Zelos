@@ -289,3 +289,108 @@
   background: #e0e0e0;
 }
 
+/* Toasts */
+.toasterContainer {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  z-index: 2000;
+}
+
+.toaster {
+  animation: fadeIn 0.4s ease;
+  background: var(--senai-red);
+  color: var(--white);
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-width: 250px;
+}
+
+.toaster-success {
+  background-color: #28a745;
+}
+
+.toaster-error {
+  background-color: #d32f2f;
+}
+
+.toaster-close {
+  margin-left: 1rem;
+  cursor: pointer;
+  font-weight: bold;
+}
+.ticketCard {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  padding: 1rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border-left: 5px solid var(--primary-blue);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ticketCard:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--box-shadow);
+}
+
+.ticketHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ticketId {
+  font-weight: 700;
+}
+
+.ticketTypeBadge {
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  text-transform: capitalize;
+}
+
+.ticketTitle {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.ticketDescription {
+  font-size: 0.9rem;
+  color: #555;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.ticketFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #666;
+}
+
+.ticketStatus {
+  font-weight: 700;
+}
+
+.ticketDate {
+  font-style: italic;
+}
