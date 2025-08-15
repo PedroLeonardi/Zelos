@@ -2,6 +2,7 @@
    #drop database zelo;
    use zelo;
    
+
    -- Criação da tabela usuarios
     CREATE TABLE usuarios (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -21,6 +22,7 @@
 
     -- Criação da tabela  servicos = Pool
     CREATE TABLE servicos (  
+
         id INT AUTO_INCREMENT PRIMARY KEY,
         titulo ENUM('externo', 'manutencao', 'apoio_tecnico', 'limpeza') NOT NULL,
         descricao TEXT,
@@ -77,6 +79,7 @@
 #------------------------------------------------------------------------------------
 
 -- Inserir dados na tabela usuarios
+
 INSERT INTO usuarios (nome, id_login, email, funcao, status)
 VALUES
 ('Ana Silva', 'USR001', 'ana@example.com', 'Administradora', 'ativo'),
@@ -85,6 +88,7 @@ VALUES
 
 -- Inserir dados na tabela servicos
 INSERT INTO servicos (titulo, descricao, status, created_by, updated_by)
+
 VALUES
 ('externo', 'Serviços externos diversos', 'ativo', 1, 1),
 ('manutencao', 'Manutenção de equipamentos', 'ativo', 1, 2),
@@ -92,12 +96,14 @@ VALUES
 
 -- Inserir dados na tabela chamados
 INSERT INTO chamados (titulo, descricao, servicos_id, tecnico_id, usuario_id, status)
+
 VALUES
 ('Troca de lâmpada', 'Solicitação para troca de lâmpada no corredor', 2, 2, 3, 'pendente'),
 ('Erro no sistema', 'Sistema apresentando falhas ao logar', 3, 2, 3, 'em andamento'),
 ('Pintura externa', 'Solicitação para pintura do muro externo', 1, 1, 3, 'concluído');
 
 -- Inserir dados na tabela apontamentos
+
 INSERT INTO apontamentos (chamado_id, tecnico_id, descricao, comeco, fim)
 VALUES
 (1, 2, 'Trocada lâmpada queimada', '2025-08-11 08:00:00', '2025-08-11 08:20:00'),
@@ -105,8 +111,10 @@ VALUES
 (3, 1, 'Preparação para pintura', '2025-08-11 11:00:00', '2025-08-11 13:30:00');
 
 select *from apontamentos;
+
 -- Inserir dados na tabela Especialidades
 INSERT INTO Especialidades (id_servicos, id_tecnico)
+
 VALUES
 (1, 1), -- Técnico associado ao pool externo
 (2, 2), -- Técnico associado ao pool manutenção
@@ -129,6 +137,7 @@ SELECT
 FROM chamados c
 LEFT JOIN servicos p ON c.servicos_id = p.id
 LEFT JOIN Especialidades pt ON p.id = pt.id_servicos
+
 LEFT JOIN usuarios u ON pt.id_tecnico = u.id;
 
 
@@ -136,6 +145,7 @@ SELECT * FROM View_Chamados;
 
 #nao esqueça de fala com o pedro sobre pegar o id_patrimonio como chaver estrangeira
 #-----------------------------------------------------------------------------------------cdcd 
+
 
 
 
