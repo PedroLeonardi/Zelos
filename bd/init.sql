@@ -35,18 +35,28 @@
         FOREIGN KEY (updated_by) REFERENCES usuarios(id)
     );
 
+create table patrimonio (
+	id int auto_increment PRIMARY KEY,
+    categoria text,
+    descricao text,
+    aquisicao datetime,
+    n_patrimonio varchar(15) not null UNIQUE
+);
+
+
     -- Criação da tabela chamados
     CREATE TABLE chamados (
         id INT AUTO_INCREMENT PRIMARY KEY,
         titulo VARCHAR(255) NOT NULL,
         descricao TEXT NOT NULL,
-        id_patrimonio INT NOT NULL,
+        id_patrimonio INt not null,
         servicos_id INt not null,
         tecnico_id INT,
         usuario_id INT NOT NULL,
         status ENUM('pendente', 'em andamento','aguardando aprovação', 'concluído') DEFAULT 'pendente',
         criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (id_patrimonio) REFERENCES patrimonio(id),
         FOREIGN KEY (servicos_id) REFERENCES servicos(id),
         FOREIGN KEY (tecnico_id) REFERENCES usuarios(id),
         FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
@@ -78,67 +88,56 @@
 
 #------------------------------------------------------------------------------------
 
--- Inserir dados na tabela usuarios
-
-INSERT INTO usuarios (nome, id_login, email, funcao, status)
+-- Inserir usuários
+INSERT INTO usuarios (nome, id_login, email, funcao)
 VALUES
-('Ana Silva', 'USR001', 'ana@example.com', 'Administradora', 'ativo'),
-('Carlos Souza', 'USR002', 'carlos@example.com', 'Técnico', 'ativo'),
-('Mariana Lima', 'USR003', 'mariana@example.com', 'Usuário', 'inativo');
+('Pedro Silva', 'P001', 'pedro@zelo.com', 'técnico'),
+('Maria Souza', 'M001', 'maria@zelo.com', 'usuário'),
+('Carlos Lima', 'C001', 'carlos@zelo.com', 'técnico');
 
--- Inserir dados na tabela servicos
-INSERT INTO servicos (titulo, descricao, status, created_by, updated_by)
-
+-- Inserir serviços
+INSERT INTO servicos (titulo, descricao, created_by, updated_by)
 VALUES
-('externo', 'Serviços externos diversos', 'ativo', 1, 1),
-('manutencao', 'Manutenção de equipamentos', 'ativo', 1, 2),
-('apoio_tecnico', 'Suporte técnico interno', 'inativo', 2, 1);
+('manutencao', 'Reparo de equipamentos', 1, 1),
+('apoio_tecnico', 'Suporte ao usuário', 1, 1),
+('limpeza', 'Limpeza interna', 1, 1);
 
--- Inserir dados na tabela chamados
-INSERT INTO chamados (titulo, descricao, servicos_id, tecnico_id, usuario_id, status)
-
+-- Inserir patrimônio
+INSERT INTO patrimonio (categoria, descricao, aquisicao, n_patrimonio)
 VALUES
-('Troca de lâmpada', 'Solicitação para troca de lâmpada no corredor', 2, 2, 3, 'pendente'),
-('Erro no sistema', 'Sistema apresentando falhas ao logar', 3, 2, 3, 'em andamento'),
-('Pintura externa', 'Solicitação para pintura do muro externo', 1, 1, 3, 'concluído');
+('Computador', 'PC Dell Optiplex', '2024-01-15', 'PAT001'),
+('Impressora', 'HP LaserJet', '2023-08-20', 'PAT002'),
+('Projetor', 'Epson Full HD', '2022-05-05', 'PAT003');
 
--- Inserir dados na tabela apontamentos
-
-INSERT INTO apontamentos (chamado_id, tecnico_id, descricao, comeco, fim)
+-- Inserir chamados
+INSERT INTO chamados (titulo, descricao, id_patrimonio, servicos_id, tecnico_id, usuario_id, status)
 VALUES
-(1, 2, 'Trocada lâmpada queimada', '2025-08-11 08:00:00', '2025-08-11 08:20:00'),
-(2, 2, 'Correção de bug no sistema', '2025-08-11 09:00:00', '2025-08-11 10:15:00'),
-(3, 1, 'Preparação para pintura', '2025-08-11 11:00:00', '2025-08-11 13:30:00');
+('Troca de memória RAM', 'Computador com problemas de desempenho', 1, 1, 1, 2, 'pendente'),
+('Configuração de impressora', 'Instalação de drivers e rede', 2, 2, 3, 2, 'em andamento'),
+('Manutenção no projetor', 'Troca de lâmpada', 3, 1, 1, 2, 'aguardando aprovação');
 
-select *from apontamentos;
-
--- Inserir dados na tabela Especialidades
-INSERT INTO Especialidades (id_servicos, id_tecnico)
-
-VALUES
-(1, 1), -- Técnico associado ao pool externo
-(2, 2), -- Técnico associado ao pool manutenção
-(3, 2); -- Técnico associado ao pool apoio técnico
 
 #-----------------------------------------------------------------------------------------
 
+#drop view View_Chamados;
 
 CREATE OR REPLACE VIEW View_Chamados AS
 SELECT
-    c.id AS chamado_id,
-    c.titulo AS chamado_titulo,
-    c.descricao AS descricao,
-    c.status AS chamado_status,
-    c.criado_em AS data_criacao,
+    c.id           AS chamado_id,
+    c.titulo       AS chamado_titulo,
+    c.descricao    AS descricao,
+    c.status       AS chamado_status,
+    c.criado_em    AS data_criacao,
     c.atualizado_em AS data_fechamento,
-    p.titulo AS tipo_chamado,
-    u.id AS tecnico_id,
-    u.nome AS tecnico_nome
+    s.titulo       AS tipo_chamado,
+    pa.n_patrimonio,
+    u.id           AS tecnico_id,
+    u.nome         AS tecnico_nome
 FROM chamados c
-LEFT JOIN servicos p ON c.servicos_id = p.id
-LEFT JOIN Especialidades pt ON p.id = pt.id_servicos
+LEFT JOIN servicos    s  ON c.servicos_id   = s.id
+LEFT JOIN patrimonio  pa ON c.id_patrimonio = pa.id
+LEFT JOIN usuarios    u  ON c.tecnico_id    = u.id;
 
-LEFT JOIN usuarios u ON pt.id_tecnico = u.id;
 
 
 SELECT * FROM View_Chamados;
