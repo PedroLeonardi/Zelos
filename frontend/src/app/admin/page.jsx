@@ -1,277 +1,342 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react'; // ✨ Adicionado useEffect
+import { useState, useMemo, useEffect } from 'react';
+import { Toaster, toast } from 'react-hot-toast';
+// Para os ícones, instale a biblioteca com: npm install react-icons
+import { FiPlus, FiSearch, FiEdit, FiTrash2, FiChevronUp, FiChevronDown, FiX } from 'react-icons/fi';
 import styles from './admin.module.css';
+import Header from '../components/Header';
 
-// 🗑️ mockChamadosInit foi removido daqui.
-
-const mockUsuarios = [
-  { id: 1, nome: 'Carlos Souza', funcao: 'Técnico', status: 'ativo' },
-  { id: 2, nome: 'Ana Pereira', funcao: 'Técnico', status: 'ativo' },
-  { id: 3, nome: 'Maria Silva', funcao: 'Usuário', status: 'inativo' },
+// --- DADOS INICIAIS (MOCK DATA) APRIMORADOS ---
+const initialChamados = [
+  { id: '#7821', titulo: 'Reparo Impressora 3D', tecnico: 'Carlos Souza', status: 'Em Andamento', criado_em: '2025-08-01', prioridade: 'Alta', departamento: 'Engenharia' },
+  { id: '#7815', titulo: 'Manutenção Torno CNC', tecnico: 'Carlos Souza', status: 'Concluído', criado_em: '2025-07-30', prioridade: 'Média', departamento: 'Oficina' },
+  { id: '#7820', titulo: 'Instalar Software CAD', tecnico: 'Ana Pereira', status: 'Pendente', criado_em: '2025-08-02', prioridade: 'Baixa', departamento: 'TI' },
+  { id: '#7809', titulo: 'Troca de Lâmpadas', tecnico: 'Carlos Souza', status: 'Concluído', criado_em: '2025-07-25', prioridade: 'Baixa', departamento: 'Manutenção' },
+  { id: '#7822', titulo: 'Verificar Ponto de Rede', tecnico: 'Ana Pereira', status: 'Em Andamento', criado_em: '2025-08-03', prioridade: 'Alta', departamento: 'TI' },
+  { id: '#7823', titulo: 'Conserto Ar Condicionado', tecnico: 'Carlos Souza', status: 'Pendente', criado_em: '2025-08-04', prioridade: 'Urgente', departamento: 'Administrativo' },
+  { id: '#7824', titulo: 'Atualização Sistema Moodle', tecnico: 'Ana Pereira', status: 'Pendente', criado_em: '2025-08-05', prioridade: 'Média', departamento: 'TI' },
 ];
 
+const usuarios = [
+  { id: 1, nome: 'Carlos Souza', funcao: 'Técnico', status: 'ativo' },
+  { id: 2, nome: 'Ana Pereira', funcao: 'Técnico', status: 'ativo' },
+  { id: 3, nome: 'Mariana Costa', funcao: 'Técnico', status: 'ativo' },
+  { id: 4, nome: 'João Silva', funcao: 'Usuário', status: 'inativo' },
+];
 
+const ITEMS_PER_PAGE = 5;
 
+// --- SUBCOMPONENTES ---
+const StatCard = ({ title, value, type = 'default' }) => (
+  <div className={`${styles.statsCard} ${styles[type]}`}>
+    <h3>{title}</h3>
+    <p>{value}</p>
+  </div>
+);
+
+const TechnicianList = ({ technicians }) => (
+  <div className={styles.sidebarCard}>
+    <h3>Técnicos Ativos</h3>
+    <ul className={styles.userList}>
+      {technicians.map(t => (
+        <li key={t.id}>
+          <span>{t.nome}</span>
+          <span className={styles.statusActive}>Ativo</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+);
+
+// --- COMPONENTE PRINCIPAL ---
 export default function AdminDashboard() {
-  // ... outros useState
-
-  // ✨ --- useEffect CORRIGIDO para buscar dados da API --- ✨
-
-
-  const [filter, setFilter] = useState('todos');
-  // ✨ O estado inicial de 'chamados' agora é um array vazio.
-  const [chamados, setChamados] = useState([]); 
-  const [loading, setLoading] = useState(true); // ✨ Novo estado para controlar o carregamento
-  const [error, setError] = useState(null); // ✨ Novo estado para controlar erros
+  const [chamados, setChamados] = useState(initialChamados);
+  const [statusFilter, setStatusFilter] = useState('todos');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortConfig, setSortConfig] = useState({ key: 'criado_em', direction: 'descending' });
+  const [currentPage, setCurrentPage] = useState(1);
   
-  const [editId, setEditId] = useState(null);
-  const [editTitulo, setEditTitulo] = useState('');
-  const [editTecnico, setEditTecnico] = useState('');
+  // State para o modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingChamado, setEditingChamado] = useState(null);
 
-  // ✨ --- NOVO: useEffect para buscar dados da API --- ✨
-  useEffect(() => {
-    const fetchChamados = async () => {
-      try {
-        const response = await fetch('http://localhost:8080/relatorio/get');
-        if (!response.ok) {
-          throw new Error('Falha ao buscar os dados da API');
-        }
-        const data = await response.json(); // 'data' é o objeto { mensagem: [...] }
+  // --- LÓGICA MEMOIZADA PARA PERFORMANCE ---
+  const filteredAndSortedChamados = useMemo(() => {
+    let items = [...chamados];
 
-        // ✨ AQUI ESTÁ A CORREÇÃO PRINCIPAL ✨
-        // Acessamos a propriedade 'mensagem' que contém o array.
-        if (data && Array.isArray(data.mensagem)) {
-          // Precisamos mapear os campos da sua API para os nomes que o front-end espera
-          const chamadosMapeados = data.mensagem.map(item => ({
-            id: `#${item.chamado_id}`, // O front espera um ID com '#'
-            titulo: item.chamado_titulo,
-            // O front espera 'tecnico' e a API envia 'tecnico_id'. Precisamos ajustar isso.
-            // Por enquanto, vamos deixar em branco ou usar o ID.
-            tecnico: item.tecnico_id ? `Técnico: ${item.tecnico_nome}, ID:${item.tecnico_id}` : '', // Ajuste temporário
-            status: item.status || 'Pendente', // Se a API não envia status, definimos um padrão
-            criado_em: item.data_criacao ? item.data_criacao.split('T')[0] : new Date().toISOString().split('T')[0], // Ajuste o nome do campo se necessário
-          }));
-          setChamados(chamadosMapeados); // ✅ Corrigido!
-        } else {
-          // Medida de segurança caso a API mude a resposta
-          console.warn("A resposta da API não continha um array na chave 'mensagem'.");
-          setChamados([]);
-        }
-
-      } catch (err) {
-        setError(err.message);
-        console.error("Erro ao buscar chamados:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchChamados();
-  }, []); // O array vazio [] garante que isso rode apenas uma vez
-
-  const filteredChamados = useMemo(() => {
-    if (filter === 'todos') return chamados;
-    if (filter === 'semAtribuicao') {
-      return chamados.filter(c => !c.tecnico);
+    // 1. Filtragem por Status
+    if (statusFilter !== 'todos') {
+      items = items.filter(c => c.status === statusFilter);
     }
-    return chamados.filter(c => c.status === filter);
-  }, [filter, chamados]);
 
+    // 2. Filtragem por Busca
+    if (searchTerm) {
+      items = items.filter(c =>
+        c.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.id.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // 3. Ordenação
+    if (sortConfig.key) {
+      items.sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+
+    return items;
+  }, [chamados, statusFilter, searchTerm, sortConfig]);
+  
+  // --- PAGINAÇÃO ---
+  const paginatedChamados = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredAndSortedChamados.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredAndSortedChamados, currentPage]);
+
+  const totalPages = Math.ceil(filteredAndSortedChamados.length / ITEMS_PER_PAGE);
+
+  // --- ESTATÍSTICAS ---
   const stats = useMemo(() => ({
     total: chamados.length,
-    semAtribuicao: chamados.filter(c => !c.tecnico).length,
     pendente: chamados.filter(c => c.status === 'Pendente').length,
-    'Em Andamento': chamados.filter(c => c.status === 'Em Andamento').length,
+    emAndamento: chamados.filter(c => c.status === 'Em Andamento').length,
     concluido: chamados.filter(c => c.status === 'Concluído').length,
   }), [chamados]);
 
-  // ... (o resto das suas funções permanece igual)
-  const atualizarStatus = (id, novoStatus) => {
-    setChamados(prev => prev.map(c => c.id === id ? { ...c, status: novoStatus } : c));
+  // --- HANDLERS ---
+  const handleSort = (key) => {
+    let direction = 'ascending';
+    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
+  
+  const openModal = (chamado = null) => {
+    setEditingChamado(chamado);
+    setIsModalOpen(true);
   };
 
-  const adicionarChamado = () => {
-    const novoId = '#78' + (830 + chamados.length);
-    const novoChamado = {
-      id: novoId,
-      titulo: 'Chamado Novo Exemplo',
-      tecnico: 'Carlos Souza',
-      status: 'Pendente',
-      criado_em: new Date().toISOString().split('T')[0],
-    };
-    setChamados(prev => [novoChamado, ...prev]);
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingChamado(null);
   };
-
-  const fecharChamado = (id) => {
-    if (confirm('Quer fechar mesmo esse chamado?')) {
-      atualizarStatus(id, 'Concluído');
-      if(editId === id) cancelEdit();
+  
+  const handleSaveChamado = (formData) => {
+    if(editingChamado) { // Editando
+      setChamados(prev => prev.map(c => c.id === editingChamado.id ? { ...c, ...formData } : c));
+      toast.success('Chamado atualizado com sucesso!');
+    } else { // Criando
+      const novoChamado = {
+        ...formData,
+        id: '#78' + Math.floor(Math.random() * 100),
+        status: 'Pendente',
+        criado_em: new Date().toISOString().split('T')[0],
+      };
+      setChamados(prev => [novoChamado, ...prev]);
+      toast.success('Novo chamado criado com sucesso!');
+    }
+    closeModal();
+  };
+  
+  const handleDeleteChamado = (id) => {
+    if (window.confirm('Tem certeza que deseja excluir este chamado? Esta ação é irreversível.')) {
+      setChamados(prev => prev.filter(c => c.id !== id));
+      toast.error('Chamado excluído!');
     }
   };
 
-  const startEdit = (chamado) => {
-    setEditId(chamado.id);
-    setEditTitulo(chamado.titulo);
-    setEditTecnico(chamado.tecnico);
-  };
+  // Reseta a página para 1 quando os filtros mudam
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, searchTerm]);
 
-  const cancelEdit = () => {
-    setEditId(null);
-    setEditTitulo('');
-    setEditTecnico('');
-  };
-
-  const saveEdit = () => {
-    setChamados(prev => prev.map(c => 
-      c.id === editId ? { ...c, titulo: editTitulo, tecnico: editTecnico } : c
-    ));
-    cancelEdit();
-  };
-
-  // ✨ --- NOVO: Lógica para exibir mensagens de carregamento e erro --- ✨
-  if (loading) {
-    return <div className={styles.centeredMessage}>⏳ Carregando chamados...</div>;
-  }
-
-  if (error) {
-    return <div className={`${styles.centeredMessage} ${styles.error}`}>🆘 Erro: {error}</div>;
-  }
-
+  // --- RENDER ---
   return (
-    <div className={styles.dashboardWithSidebar}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Painel de Controle do Administrador</h1>
-      </header>
+    <>
+      <Header />
+      <Toaster position="top-right" toastOptions={{ className: styles.toast, style: { background: '#333', color: '#fff' } }}/>
 
-      {/* ... O resto do seu JSX permanece o mesmo ... */}
-      <section className={styles.statsGrid}>
-        <div className={styles.statsCard}><h4>Total de Chamados</h4><p>{stats.total}</p></div>
-        <div className={styles.statsCard}><h4>Pendentes</h4><p>{stats.pendente}</p></div>
-        <div className={styles.statsCard}><h4>Em Andamento</h4><p>{stats['Em Andamento']}</p></div>
-        <div className={styles.statsCard}><h4>Concluídos</h4><p>{stats.concluido}</p></div>
-        <div className={styles.statsCard}><h4>Sem atribuição</h4><p>{stats.semAtribuicao}</p></div>
-      </section>
-
-      <div className={styles.mainWithSidebar}>
-        <section className={styles.mainContent}>
-          <div className={styles.reportHeader}>
-            <h2 className={styles.sectionTitle}>Relatório de Chamados</h2>
-            <div className={styles.filters}>
-              <button onClick={() => setFilter('todos')} className={filter === 'todos' ? styles.activeFilter : ''}>Todos</button>
-              <button onClick={() => setFilter('Pendente')} className={filter === 'Pendente' ? styles.activeFilter : ''}>Pendentes</button>
-              <button onClick={() => setFilter('Em Andamento')} className={filter === 'Em Andamento' ? styles.activeFilter : ''}>Em Andamento</button>
-              <button onClick={() => setFilter('Concluído')} className={filter === 'Concluído' ? styles.activeFilter : ''}>Concluídos</button>
-              <button onClick={() => setFilter('semAtribuicao')} className={filter === 'semAtribuicao' ? styles.activeFilter : ''}>Sem Atribuição</button>
-              <button onClick={adicionarChamado} className={styles.addButton}>+ Novo Chamado</button>
+      <div className={styles.dashboardContainer}>
+        <main className={styles.mainGrid}>
+          <header className={styles.pageHeader}>
+            <div>
+              <h1 className={styles.pageTitle}>Painel Administrativo</h1>
+              <p className={styles.pageSubtitle}>Visão geral e gerenciamento de chamados técnicos.</p>
             </div>
-          </div>
-          
-          <div className={styles.reportTable}>
-            <div className={`${styles.tableRow} ${styles.headerRow}`}>
-              <div>Chamado ID</div>
-              <div>Título</div>
-              <div>Técnico Responsável</div>
-              <div>Data</div>
-              <div>Status</div>
-              <div>Ações</div>
-            </div>
+            <button onClick={() => openModal()} className={styles.addButton}>
+              <FiPlus /> Adicionar Chamado
+            </button>
+          </header>
 
-            {filteredChamados.map(chamado => (
-              <div key={chamado.id} className={styles.tableRow}>
-                <div><strong>{chamado.id}</strong></div>
-                
-                <div>
-                  {editId === chamado.id ? (
-                    <input 
-                      type="text" 
-                      value={editTitulo} 
-                      onChange={e => setEditTitulo(e.target.value)} 
-                      autoFocus
-                    />
-                  ) : (
-                    chamado.titulo
-                  )}
-                </div>
+          <section className={styles.statsGrid}>
+            <StatCard title="Total de Chamados" value={stats.total} />
+            <StatCard title="Pendentes" value={stats.pendente} type="pending" />
+            <StatCard title="Em Andamento" value={stats.emAndamento} type="inProgress" />
+            <StatCard title="Concluídos" value={stats.concluido} type="completed" />
+          </section>
 
-                <div>
-                  {editId === chamado.id ? (
-                    <select value={editTecnico} onChange={e => setEditTecnico(e.target.value)}>
-                      <option value="">Nenhum</option>
-                      {mockUsuarios.filter(u => u.funcao === 'Técnico' && u.status === 'ativo').map(user => (
-                        <option key={user.id} value={user.nome}>{user.nome}</option>
-                      ))}
-                    </select>
-                  ) : (
-                    chamado.tecnico
-                  )}
-                </div>
-
-                <div>{chamado.criado_em}</div>
-
-                <div>
-                  <span className={`${styles.statusTag} ${styles['status' + chamado.status.replace(' ', '')]}`}>
-                    {chamado.status}
-                  </span>
-                </div>
-
-                <div className={styles.actions}>
-                  {editId === chamado.id ? (
-                    <>
-                      <button onClick={saveEdit}>Salvar</button>
-                      <button onClick={cancelEdit} className={styles.danger}>Cancelar</button>
-                    </>
-                  ) : (
-                    <>
-                      {chamado.status !== 'Concluído' && (
-                        <>
-                          <button onClick={() => atualizarStatus(chamado.id, 'Em Andamento')}>Iniciar</button>
-                          <button onClick={() => fecharChamado(chamado.id)} className={styles.danger}>Fechar</button>
-                          <button onClick={() => startEdit(chamado)}>Editar</button>
-                        </>
-                      )}
-                      {chamado.status === 'Concluído' && <span>✓</span>}
-                    </>
-                  )}
+          <div className={styles.contentGrid}>
+            <section className={styles.reportSection}>
+              <div className={styles.reportHeader}>
+                <h2>Relatório de Chamados</h2>
+                <div className={styles.searchContainer}>
+                  <FiSearch className={styles.searchIcon} />
+                  <input
+                    type="text"
+                    placeholder="Buscar por ID ou Título..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className={styles.searchInput}
+                  />
                 </div>
               </div>
-            ))}
-            {/* ✨ Mensagem para quando não houver chamados */}
-            {chamados.length === 0 && !loading && (
-              <div className={styles.centeredMessage}>Nenhum chamado encontrado.</div>
-            )}
-          </div>
-        </section>
 
-        <aside className={styles.sidebarContent}>
-          <h3>Técnicos Ativos</h3>
-          <ul className={styles.userList}>
-            {mockUsuarios.filter(u => u.funcao === 'Técnico' && u.status === 'ativo').map(user => (
-              <li key={user.id} className={styles.userRow}>
-                <span>{user.nome}</span>
-                <span className={styles.statusActive}>Ativo</span>
-              </li>
-            ))}
-          </ul>
-        </aside>
+              <div className={styles.filters}>
+                {['todos', 'Pendente', 'Em Andamento', 'Concluído'].map(f => (
+                  <button key={f} onClick={() => setStatusFilter(f)} className={statusFilter === f ? styles.activeFilter : ''}>
+                    {f === 'todos' ? 'Todos' : f}
+                  </button>
+                ))}
+              </div>
+
+              <div className={styles.tableContainer}>
+                <div className={`${styles.tableRow} ${styles.headerRow}`}>
+                  <span onClick={() => handleSort('id')}>ID {sortConfig.key === 'id' && (sortConfig.direction === 'ascending' ? <FiChevronUp/> : <FiChevronDown/>)}</span>
+                  <span onClick={() => handleSort('titulo')}>Título {sortConfig.key === 'titulo' && (sortConfig.direction === 'ascending' ? <FiChevronUp/> : <FiChevronDown/>)}</span>
+                  <span onClick={() => handleSort('tecnico')}>Técnico {sortConfig.key === 'tecnico' && (sortConfig.direction === 'ascending' ? <FiChevronUp/> : <FiChevronDown/>)}</span>
+                  <span onClick={() => handleSort('prioridade')}>Prioridade {sortConfig.key === 'prioridade' && (sortConfig.direction === 'ascending' ? <FiChevronUp/> : <FiChevronDown/>)}</span>
+                  <span onClick={() => handleSort('status')}>Status {sortConfig.key === 'status' && (sortConfig.direction === 'ascending' ? <FiChevronUp/> : <FiChevronDown/>)}</span>
+                  <span>Ações</span>
+                </div>
+
+                {paginatedChamados.map(c => (
+                  <div className={styles.tableRow} key={c.id}>
+                    <span data-label="ID"><strong>{c.id}</strong><small>{c.criado_em}</small></span>
+                    <span data-label="Título">{c.titulo}</span>
+                    <span data-label="Técnico">{c.tecnico}</span>
+                    <span data-label="Prioridade"><div className={`${styles.priorityTag} ${styles[c.prioridade]}`}>{c.prioridade}</div></span>
+                    <span data-label="Status"><div className={`${styles.statusTag} ${styles[c.status.replace(/\s+/g, '')]}`}>{c.status}</div></span>
+                    <div data-label="Ações" className={styles.actions}>
+                      <button onClick={() => openModal(c)} className={styles.actionButton} aria-label="Editar"><FiEdit /></button>
+                      <button onClick={() => handleDeleteChamado(c.id)} className={styles.closeButton} aria-label="Excluir"><FiTrash2 /></button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {totalPages > 1 && (
+                <div className={styles.pagination}>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button key={page} onClick={() => setCurrentPage(page)} className={currentPage === page ? styles.activePage : ''}>
+                      {page}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+            </section>
+
+            <aside className={styles.sidebar}>
+              <TechnicianList technicians={usuarios.filter(u => u.funcao === 'Técnico' && u.status === 'ativo')} />
+            </aside>
+          </div>
+        </main>
+      </div>
+      
+      {isModalOpen && <ChamadoModal chamado={editingChamado} onClose={closeModal} onSave={handleSaveChamado} tecnicos={usuarios.filter(u => u.funcao === 'Técnico')} />}
+    </>
+  );
+}
+
+// --- COMPONENTE MODAL ---
+function ChamadoModal({ chamado, onClose, onSave, tecnicos }) {
+  const [formData, setFormData] = useState({
+    titulo: chamado?.titulo || '',
+    departamento: chamado?.departamento || '',
+    tecnico: chamado?.tecnico || tecnicos[0]?.nome,
+    prioridade: chamado?.prioridade || 'Média',
+    descricao: chamado?.descricao || '',
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if(!formData.titulo || !formData.departamento) {
+      toast.error('Título e Departamento são obrigatórios!');
+      return;
+    }
+    onSave(formData);
+  };
+  
+  useEffect(() => {
+    const handleEsc = (event) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [onClose]);
+
+  return (
+    <div className={styles.modalBackdrop} onClick={onClose}>
+      <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+        <form onSubmit={handleSubmit}>
+          <div className={styles.modalHeader}>
+            <h2>{chamado ? 'Editar Chamado' : 'Criar Novo Chamado'}</h2>
+            <button type="button" className={styles.closeModalButton} onClick={onClose}><FiX /></button>
+          </div>
+          <div className={styles.modalBody}>
+            <div className={styles.formGroup}>
+              <label htmlFor="titulo">Título do Chamado</label>
+              <input type="text" id="titulo" name="titulo" value={formData.titulo} onChange={handleChange} required autoFocus />
+            </div>
+            <div className={styles.formRow}>
+              <div className={styles.formGroup}>
+                <label htmlFor="departamento">Departamento</label>
+                <input type="text" id="departamento" name="departamento" value={formData.departamento} onChange={handleChange} required />
+              </div>
+              <div className={styles.formGroup}>
+                <label htmlFor="tecnico">Técnico Responsável</label>
+                <select id="tecnico" name="tecnico" value={formData.tecnico} onChange={handleChange}>
+                  {tecnicos.map(t => <option key={t.id} value={t.nome}>{t.nome}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className={styles.formGroup}>
+              <label>Prioridade</label>
+              <div className={styles.priorityOptions}>
+                {['Baixa', 'Média', 'Alta', 'Urgente'].map(p => (
+                   <label key={p}>
+                     <input type="radio" name="prioridade" value={p} checked={formData.prioridade === p} onChange={handleChange} />
+                     <span className={`${styles.priorityTag} ${styles[p]}`}>{p}</span>
+                   </label>
+                ))}
+              </div>
+            </div>
+            <div className={styles.formGroup}>
+              <label htmlFor="descricao">Descrição</label>
+              <textarea id="descricao" name="descricao" rows="4" value={formData.descricao} onChange={handleChange}></textarea>
+            </div>
+          </div>
+          <div className={styles.modalFooter}>
+            <button type="button" className={styles.cancelButton} onClick={onClose}>Cancelar</button>
+            <button type="submit" className={styles.saveButton}>Salvar Chamado</button>
+          </div>
+        </form>
       </div>
     </div>
   );
 }
-
-// ✨ Adicione alguns estilos para as mensagens de carregamento e erro no seu CSS (admin.module.css)
-/*
-.centeredMessage {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 200px;
-  font-size: 1.2rem;
-  color: #555;
-}
-
-.error {
-  color: #d9534f;
-  font-weight: bold;
-}
-*/
