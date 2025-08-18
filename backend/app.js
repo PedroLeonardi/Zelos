@@ -46,6 +46,7 @@ app.use('/auth', authRotas);
 
 app.use("/chamados", chamados)
 
+//a rota servico ta fucionando todas
 app.use('/servico', servico)
 
 //a rota relatorio ta fucionando todas

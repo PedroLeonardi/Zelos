@@ -78,23 +78,23 @@ async function create(table, data) {
     }
 }
 
-// Função para atualizar um registro
-async function update(table, data, where) {
+async function update(table, data, id) {
     const connection = await getConnection();
     try {
         const set = Object.keys(data)
             .map(column => `${column} = ?`)
             .join(', ');
 
-        const sql = `UPDATE ${table} SET ${set} WHERE ${where}`;
-        const values = Object.values(data);
+        const sql = `UPDATE ${table} SET ${set} WHERE id = ?`; 
+        const values = [...Object.values(data), id];           
 
-        const [result] = await connection.execute(sql, [...values]);
+        const [result] = await connection.execute(sql, values);
         return result.affectedRows;
     } finally {
         connection.release();
     }
 }
+
 
 // Função para excluir um registro
 async function deleteRecord(table, where) {

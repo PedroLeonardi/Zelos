@@ -1,49 +1,49 @@
 import {read, readAll, deleteRecord, create, update} from "../config/database.js"
 
-const readAllPool = () => {
+const readAllServicos = () => {
     try {
-        return readAll("pool")
+        return readAll("servicos")
     } catch (err) {
         console.error("Erro ao ler todos os pool: ", err )
         throw err
     }
 }
 
-const createPool = ( data) => {
+const createServicos = ( data) => {
     try {
-        return create("pool", {
+        return create("servicos", {
             titulo: data.titulo,
             descricao: data.descricao,
             created_by: data.created_by
         })
     } catch (err) {
-        console.error("Erro ao Criar pool", err)
+        console.error("Erro ao Criar servicos", err)
         throw err
     }
 };
 
-const updatePool = (data) =>{
+const updateServicos = (data) =>{
     try {
-        return update ("pool", {
+        return update ("servicos", {
             titulo: data.titulo,
             descricao: data.descricao,
-            update_by: data.created_by
-        })
+            updated_by: data.updated_by
+        },data.id)
     } catch (err) {
-        console.error("Erro ao atualizar pool: ", err)
+        console.error("Erro ao atualizar servicos: ", err)
         throw err
     }
 }
 
-const readFilterPool = ( filter) => {
+const readFilterServicos = ( filter) => {
     try {
         const data = `${filter.key} = '${filter.value}'`
         
-        return read ("pool", data)
+        return read ("servicos", data)
     } catch (err) {
-        console.error("Erro ao ler meus pool", err)
+        console.error("Erro ao ler meus servicos", err)
         throw err
     }
 };
 
-export {createPool, readFilterPool, readAllPool, updatePool};
+export {createServicos, readFilterServicos, readAllServicos, updateServicos};
