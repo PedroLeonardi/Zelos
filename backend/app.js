@@ -4,7 +4,7 @@ import session from 'express-session';
 import dotenv from 'dotenv';
 import authRotas from './routes/authRotas.js';
 import passport from './config/ldap.js';
-import pool from './routes/poolRotas.js'
+import servico from './routes/servicoRotas.js'
 import chamados from "./routes/chamadosRotas.js"
 import relatorio from "./routes/relatorioRotas.js"
 // 1. Carrega variáveis de ambiente PRIMEIRO
@@ -46,7 +46,8 @@ app.use('/auth', authRotas);
 
 app.use("/chamados", chamados)
 
-app.use('/pool', pool)
+app.use('/servico', servico)
+
 //a rota relatorio ta fucionando todas
 app.use('/relatorio', relatorio)
 
