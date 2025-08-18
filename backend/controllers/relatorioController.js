@@ -2,26 +2,40 @@ import { readFilterRelatorio, readAllRelatorio, readFilterBetweenRelatorio} from
 
 
 
-const readFilterRelatorioController = async (req,res) =>{
+const readFilterRelatorioController = async (req, res) => {
     try {
-        return res.status(200).json( {mensagem: await readFilterRelatorio(req.body)})
+      const { key, value } = req.body; 
+      if (!key || !value) {
+        return res.status(400).json({ mensagem: "Parâmetros key e value são obrigatórios" });
+      }
+      return res.status(200).json({
+        mensagem: await readFilterRelatorio({ key, value })
+      });
     } catch (err) {
-        console.error("Erro ao Ler meus Chamdos: ", err)
-        return res.status(400).json({mensagem:"Erro ao ler meus chamados"})
+      console.error("Erro ao Ler meus Chamados: ", err);
+      return res.status(400).json({ mensagem: "Erro ao ler meus chamados" });
     }
-        
+  };
+  
+
+
+  const readFilterBetweenRelatorioController = async (req, res) => {
+    try {
+        const { key, firstValue, secondValue } = req.body;
+
+        if (!key || !firstValue || !secondValue) {
+            return res.status(400).json({ mensagem: "Parâmetros key, firstValue e secondValue são obrigatórios" });
+        }
+
+        const resultado = await readFilterBetweenRelatorio({ key, firstValue, secondValue });
+        return res.status(200).json({ mensagem: resultado });
+
+    } catch (err) {
+        console.error("Erro ao Ler meus Chamados: ", err);
+        return res.status(400).json({ mensagem: "Erro ao ler meus chamados" });
+    }
 };
 
-const readFilterBetweenRelatorioController = async (req,res) =>{
-    try {
-
-        return res.status(200).json({mensagem: await readFilterRelatorio(req.body)})
-    } catch (err) {
-        console.error("Erro ao Ler meus Chamdos: ", err)
-        return res.status(400).json({mensagem:"Erro ao ler meus chamados"})
-    }
-        
-};
 
 const readAllRelatorioController = async (req,res) =>{
     try {

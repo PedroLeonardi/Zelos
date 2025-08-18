@@ -1,12 +1,13 @@
 import express from "express"
 import user from "../controllers/relatorioController.js"
+import auth from "../middlewares/authMiddleware.js"
 
 const router = express.Router();
 
 
-router.get("/get",  user.readAllRelatorioController)
-router.get("/getFilter", user.readFilterRelatorioController)
-router.get("/getFilterBetween", user.readFilterBetweenRelatorioController)
+router.get("/get",auth,  user.readAllRelatorioController)
+router.post("/getFilter",auth ,user.readFilterRelatorioController)
+router.post("/getFilterBetween",auth, user.readFilterBetweenRelatorioController)
 
 
 
