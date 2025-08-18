@@ -1,4 +1,4 @@
-import {createPool, readFilterPool, readAllPool, updatePool} from "../models/poolModel.js"
+import {createPool, readFilterPool, readAllPool, updatePool} from "../models/servisoModel.js"
 
 
 const createPoolContrroler = async (req, res) => {
