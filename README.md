@@ -1,123 +1,184 @@
-# Zelos
 
-## Sistema de Chamados - Escola SENAI Armando de Arruda Pereira
+# Zelos - Sistema de Gestão de Chamados
 
-Este é um projeto de **sistema de chamados** para a **Escola SENAI Armando de Arruda Pereira**, desenvolvido para gerenciar solicitações de manutenção, apoio técnico e outros serviços para itens identificados pelo número de patrimônio da escola. O sistema foi construído com **Next.js**, **Node.js** e **MySQL**.
+<div align="center">
 
-## Índice
+![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-green?style=for-the-badge)![Node.js](https://img.shields.io/badge/Node.js-14%2B-blue?style=for-the-badge&logo=node.js)![Next.js](https://img.shields.io/badge/Next.js-13%2B-lightgrey?style=for-the-badge&logo=next.js)![MySQL](https://img.shields.io/badge/MySQL-8.0-orange?style=for-the-badge&logo=mysql)
 
-1. [Sobre o Projeto](#sobre-o-projeto)
-2. [Tecnologias Utilizadas](#tecnologias-utilizadas)
-3. [Como Iniciar](#como-iniciar)
-4. [Estrutura de Diretórios](#estrutura-de-diretórios)
-5. [Banco de Dados](#banco-de-dados)
-6. [Desenvolvimento](#desenvolvimento)
-7. [Integração AD](#integração-ad)
-8. [Licença](#licença)
+</div>
 
-## Sobre o Projeto
+## 📌 Sobre o Projeto
 
-Este sistema permite que os usuários registrem chamados de manutenção e outros serviços para itens da escola, utilizando o **número de patrimônio** como identificador dos itens. Ele permite que os técnicos acompanhem o progresso dos chamados, façam apontamentos sobre o status das manutenções e gerenciem o histórico de serviços realizados.
+O **Zelos** é um sistema de gerenciamento de chamados desenvolvido para a **Escola SENAI Armando de Arruda Pereira**. O objetivo da plataforma é centralizar e otimizar o controle de solicitações de manutenção, suporte técnico e outros serviços, utilizando o **número de patrimônio** dos itens como principal identificador.
 
-### Funcionalidades Principais:
+Projetado para substituir controles manuais e descentralizados, o Zelos oferece uma visão completa do ciclo de vida de cada chamado — desde a abertura até a conclusão —, garantindo mais **transparência, eficiência e rastreabilidade** nos processos internos.
 
-- **Criação de Chamados**: Usuários podem criar chamados informando o número de patrimônio ou descrição de item e o tipo de serviço necessário.
-- **Acompanhamento de Chamados**: Técnicos e usuários podem visualizar o status dos chamados e acompanhar as atualizações feitas pelos responsáveis.
-- **Apontamentos de Técnicos**: Técnicos podem adicionar apontamentos detalhados sobre o serviço realizado.
-- **Relatórios**: O sistema permite a geração de relatórios sobre os chamados, tipos de serviços e técnicos envolvidos.
+---
 
-## Tecnologias Utilizadas
+## 🧭 Índice
 
-- **Next.js**: Framework React para o frontend.
-- **Node.js**: Ambiente de execução JavaScript para o backend.
-- **Express.js**: Framework web para Node.js.
-- **MySQL**: Banco de dados relacional para armazenamento de dados.
+1.  [**Sobre o Projeto**](#-sobre-o-projeto)
+2.  [**Índice**](#-índice)
+3.  [**Demonstração Visual**](#-demonstração-visual)
+4.  [**Tecnologias Utilizadas**](#-tecnologias-utilizadas)
+5.  [**Estrutura do Projeto**](#-estrutura-do-projeto)
+6.  [**Banco de Dados**](#-banco-de-dados)
+7.  [**Como Executar o Projeto**](#-como-executar-o-projeto)
+    -   [Pré-requisitos](#pré-requisitos)
+    -   [Passo a Passo](#passo-a-passo)
+8.  [**Autenticação via Active Directory (AD)**](#-autenticação-via-active-directory-ad)
+9.  [**Autor**](#-autor)
+10. [**Licença**](#-licença)
 
-## Como Iniciar
+---
+
+## 🖼️ Demonstração Visual
+
+
+<p align="center">
+  <img src="https://www.inova.unicamp.br/wp-content/uploads/2021/05/SENAI-SP.jpg" alt="Tela de Abertura de Chamados" width="80%">
+  <br>
+  <em>Tela principal onde os usuários podem abrir novos chamados.</em>
+</p>
+
+---
+
+## 🛠️ Tecnologias Utilizadas
+
+O projeto foi construído com as seguintes tecnologias:
+
+| Ferramenta | Descrição |
+| :--- | :--- |
+| **Frontend** | [![Next.js][Next.js-badge]][Next.js-url] |
+| **Backend** | [![Node.js][Node.js-badge]][Node.js-url] com [![Express.js][Express.js-badge]][Express.js-url] |
+| **Banco de Dados** | [![MySQL][MySQL-badge]][MySQL-url] |
+| **Driver Node.js** | `mysql2` |
+
+[Next.js-badge]: https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white
+[Next.js-url]: https://nextjs.org/
+[Node.js-badge]: https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white
+[Node.js-url]: https://nodejs.org/
+[Express.js-badge]: https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white
+[Express.js-url]: https://expressjs.com/
+[MySQL-badge]: https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white
+[MySQL-url]: https://www.mysql.com/
+
+---
+
+## 📂 Estrutura do Projeto
+
+O projeto é um monorepo com os diretórios `frontend` e `backend` claramente separados.
+
+```sh
+Zelos/
+├── 📁 backend/            # Aplicação Node.js/Express
+│   ├── src/
+│   └── database.sql    # Script de criação do banco
+├── 📁 frontend/           # Aplicação Next.js
+│   ├── public/         # Arquivos estáticos
+│   ├── app/            # Estrutura de rotas e páginas
+│   │   ├── admin/
+│   │   ├── tecnico/
+│   │   └── usuario/
+│   ├── components/     # Componentes reutilizáveis
+│   └── utils/          # Funções utilitárias
+└── 📄 README.md
+```
+
+---
+
+## 🗃️ Banco de Dados
+
+O banco de dados utiliza **MySQL** e é estruturado com as seguintes tabelas principais:
+
+| Tabela | Descrição |
+| :--- | :--- |
+| `usuarios` | Armazena dados de login e perfis de usuário (admin, técnico, comum). |
+| `servicos` | Cataloga os tipos de serviços disponíveis (manutenção, suporte, etc.). |
+| `patrimonio` | Contém o registro dos bens da escola, identificados por patrimônio. |
+| `chamados` | Registra as solicitações, vinculando patrimônio, serviço e usuário. |
+| `apontamentos` | Guarda os logs de trabalho dos técnicos (início, fim, duração). |
+| `especialidades`| Associa técnicos aos serviços que estão aptos a executar. |
+
+✨ Para facilitar a geração de relatórios, o banco também conta com a **`View_Chamados`**, uma visão que consolida informações relevantes.
+
+---
+
+## 🚀 Como Executar o Projeto
 
 ### Pré-requisitos
 
-Antes de começar, é necessário ter as seguintes ferramentas instaladas em sua máquina:
+-   **Node.js**: `v14.x` ou superior.
+-   **MySQL**: Servidor instalado e em execução.
 
-- **Node.js** (versão >= 14.x)
-- **MySQL** (ou equivalente)
+### Passo a Passo
 
-### 1. Clonar o repositório
+1.  **Clone o repositório:**
+    ```bash
+    git clone https://github.com/Paivs/Zelos.git
+    cd Zelos
+    ```
 
-```bash
-git clone https://github.com/Paivs/Zelos.git
-cd Zelos
+2.  **Instale as dependências** do frontend e do backend:
+    ```bash
+    # Instalar dependências do frontend
+    cd frontend && npm install && cd ..
+
+    # Instalar dependências do backend
+    cd backend && npm install && cd ..
+    ```
+
+3.  **Configure o Banco de Dados:**
+    -   Acesse seu cliente MySQL e crie o banco de dados:
+        ```sql
+        CREATE DATABASE zelos;
+        ```
+    -   Importe a estrutura das tabelas usando o script `database.sql`:
+        ```bash
+        mysql -u seu_usuario -p zelos < backend/database.sql
+        ```        *(Substitua `seu_usuario` pelo seu usuário do MySQL).*
+
+4.  **Execute a Aplicação:**
+    -   Você precisará de **dois terminais** abertos simultaneamente.
+
+    ```bash
+    # No primeiro terminal, inicie o backend (porta 3001)
+    cd backend && npm run dev
+    ```
+
+    ```bash
+    # No segundo terminal, inicie o frontend (porta 3000)
+    cd frontend && npm run dev
+    ```
+
+5.  **Acesse a aplicação** no seu navegador: [`http://localhost:3000`](http://localhost:3000).
+
+---
+
+## 🔐 Autenticação via Active Directory (AD)
+
+O backend possui integração nativa com o **Active Directory (AD)** para autenticação.
+
+-   **Endpoint:** `POST /auth/login`
+-   **Corpo da Requisição (JSON):**
+    ```json
+    {
+      "username": "seu_usuario_de_rede",
+      "password": "sua_senha"
+    }
+    ```
+
+⚠️ **Atenção:** Esta funcionalidade foi projetada para operar exclusivamente na rede interna da escola (cabeada ou Wi-Fi B07). Modificações no código de autenticação devem ser feitas com cautela para não comprometer a segurança.
+
+---
+
+## 👤 Autor
+
+-   **[Paivs](https://github.com/Paivs)**
+
+---
+
+## 📄 Licença
+
+Este projeto está licenciado sob a **Licença MIT**. Para mais detalhes, consulte o arquivo `LICENSE` no repositório.
 ```
-
-### 2. Instalar dependências
-
-Execute o comando abaixo para instalar as dependências do projeto:
-
-```bash
-cd frontend
-npm install
-cd ..
-cd backend
-npm install
-cd ..
-```
-
-### 3. Configuração do Banco de Dados
-
-Crie um banco de dados MySQL com o nome de sua escolha, por exemplo, `zelos`. Crie as credenciais de acesso e as teste.
-
-### 4. Iniciar o servidor
-
-Inicie o servidor de desenvolvimento do Next.js:
-
-```bash
-cd frontend
-npm run dev
-```
-
-Agora, o sistema estará rodando em `http://localhost:3000`.
-
-## Estrutura de Diretórios
-
-A estrutura de diretórios do projeto segue a organização padrão do Next.js, com algumas adições para o backend:
-
-```
-/public              # Arquivos públicos estáticos
-/app               # Páginas do frontend (Next.js)
-  /usuario               # paginas do usuário comum
-  /admin               # paginas do administrador
-  /tecnico               # paginas do tecnico
-/components          # Componentes reutilizáveis da UI
-/utils               # Funções utilitárias
-```
-
-## Banco de Dados
-
-O banco de dados utiliza o **MySQL** com a seguinte estrutura:
-
-- **`usuarios`**: Tabela de usuários, contendo informações como nome, email, senha, função e status.
-- **`pool`**: Pool de chamados (ex.: manutenção, apoio técnico, etc.).
-- **`pool_tecnico`**: Relacionamento entre técnicos e tipos de serviços.
-- **`chamados`**: Tabela de chamados, associando os chamados aos usuários e técnicos.
-- **`apontamentos`**: Registra os apontamentos dos técnicos, incluindo horários de início e fim dos serviços.
-
-## Desenvolvimento
-
-Este projeto segue boas práticas de desenvolvimento utilizando o framework **Next.js** para o frontend e **Node.js/Express** para o backend. O banco de dados MySQL é acessado utilizando o **MySQL2**, proporcionando uma maneira eficiente e segura de interagir com o banco.
-
-## Integração AD
-
-O backend já está integrado com o AD. Autenticação de usuário é feita via o seguinte endpoint "/auth/login" com o JSON:
-
-```json
-{
-  "username": "",
-  "password": ""
-}
-```
-
-Este endpoint só funciona via rede cabeada ou wifi B07. Caso precise implementar funcionalidades no endpoint de autenticação, evite remover ou alterar o código existente. Caso o faça, teste e valide.
-
-## Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
