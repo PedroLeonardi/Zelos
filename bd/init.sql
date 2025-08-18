@@ -1,5 +1,5 @@
+   drop database zelo;
    create database zelo;
-   #drop database zelo;
    use zelo;
    
 
@@ -14,10 +14,6 @@
         criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     );
-
-
-
-
 
 
     -- Criação da tabela  servicos = Pool
@@ -48,8 +44,8 @@ create table patrimonio (
     CREATE TABLE chamados (
         id INT AUTO_INCREMENT PRIMARY KEY,
         titulo VARCHAR(255) NOT NULL,
-        descricao TEXT NOT NULL,
-        n_patrimonio varchar(15) not null,
+        descricao TEXT,
+        n_patrimonio varchar(15) ,
         servicos_id INt not null,
         tecnico_id INT,
         usuario_id INT NOT NULL,
@@ -58,8 +54,8 @@ create table patrimonio (
         atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (n_patrimonio) REFERENCES patrimonio(n_patrimonio),
         FOREIGN KEY (servicos_id) REFERENCES servicos(id),
-        FOREIGN KEY (tecnico_id) REFERENCES usuarios(id),
-        FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+        FOREIGN KEY (tecnico_id) REFERENCES usuarios(id_login),
+        FOREIGN KEY (usuario_id) REFERENCES usuarios(id_login)
     );
 
     -- Criação da tabela apontamentos
@@ -156,4 +152,3 @@ SELECT * FROM View_Chamados;
     CREATE INDEX idx_apontamentos_comeco_fim ON apontamentos(comeco, fim);
     
     
-    #DROP DATABASE zelo;

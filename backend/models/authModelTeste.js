@@ -33,7 +33,7 @@ const createUser = async (data) =>{
     try {
          const dataUsuario = {
             nome: data.nome,
-            id_login: data.RA,
+            id_login: data.id_login,
             email: data.email,
             funcao: data.funcao
          }

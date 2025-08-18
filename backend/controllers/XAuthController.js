@@ -22,7 +22,7 @@ const loginController = async (req, res) => {
 
     // Gerar o token JWT
     const token = jwt.sign({ id: usuario.id, tipo: usuario.tipo }, JWT_SECRET, {
-      expiresIn: '1h',
+      expiresIn: '30d', // ----------------------------------------------- Alterar
     });
 
     res.json({ mensagem: 'Login realizado com sucesso', token });

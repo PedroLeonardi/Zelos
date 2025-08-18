@@ -7,7 +7,7 @@ const router = express.Router();
 router.get("/get",  chamados.readAllChamadosController)
 router.get("/getFilter", chamados.readFilterChamadosController)
 router.post("/post", auth, chamados.createChamadosContrroler)
-router.put("/put", auth, chamados.updateChamadosController)
-router.put("/respond", auth, chamados.respondChamadosController)
+router.put("/put/:id", auth, chamados.updateChamadosController)
+router.put("/respond/:id", auth, chamados.respondChamadosController)
 
 export default router
