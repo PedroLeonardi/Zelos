@@ -29,7 +29,7 @@ router.post('/login', (req, res, next) => {
           // ETAPA 1: Tenta criar o usuário diretamente.
           const dadosNovoUsuario = {
             nome: user.displayName,
-            RA: user.sAMAccountName,
+            id_login: user.sAMAccountName,
             email: user.name,
             funcao: "tecnico"// --------------------------------------------------------------------------------------------------------------------
           };

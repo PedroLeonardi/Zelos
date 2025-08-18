@@ -47,7 +47,7 @@ app.use('/auth', authRotas);
 app.use("/chamados", chamados)
 
 app.use('/pool', pool)
-
+//a rota relatorio ta fucionando todas
 app.use('/relatorio', relatorio)
 
 app.get('/health', (req, res) => {
