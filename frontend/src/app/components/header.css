@@ -1,79 +1,172 @@
-:root {
-                    --senai-red: #d32f2f;
-                    --white: #fff;
-                    --box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-                    --border-radius: 6px;
-                  }
-                  
-                  /* Header */
-                  .app-header {
-                    background-color: var(--senai-red);
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 0 1.5rem;
-                    height: 70px;
-                    box-shadow: var(--box-shadow);
-                    position: sticky;
-                    top: 0;
-                    z-index: 999;
-                    transition: all 0.3s ease;
-                  }
-                  
-                  /* Logo e username */
-                  .logo-container {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.75rem;
-                  }
-                  
-                  .logo {
-                    height: 45px;
-                    object-fit: contain;
-                    cursor: pointer;
-                    transition: transform 0.2s ease, filter 0.2s ease;
-                  }
-                  
-                  .logo:hover {
-                    transform: scale(1.1);
-                    filter: brightness(1.2);
-                  }
-                  
-                  .username {
-                    color: var(--white);
-                    font-weight: 600;
-                    font-size: 1rem;
-                  }
-                  
-                  /* Botão de logout */
-                  .logout-button {
-                    background: transparent;
-                    border: none;
-                    cursor: pointer;
-                    padding: 0.25rem;
-                    border-radius: var(--border-radius);
-                    transition: background 0.2s, transform 0.1s;
-                  }
-                  
-                  .logout-button:hover {
-                    background: rgba(255, 255, 255, 0.15);
-                    transform: scale(1.05);
-                  }
-                  
-                  .logout-icon {
-                    height: 30px;
-                    width: 30px;
-                    transition: transform 0.2s ease;
-                  }
-                  
-                  .logout-button:hover .logout-icon {
-                    transform: rotate(15deg) scale(1.1);
-                  }
-                  
-                  /* Responsividade */
-                  @media (max-width: 480px) {
-                    .username {
-                      display: none;
-                    }
-                  }
-                  
+/* ==========================================================================
+   1. VARIÁVEIS GLOBAIS
+   ========================================================================== */
+   :root {
+    --senai-red: #d32f2f;
+    --senai-red-dark: #b71c1c;
+    --white: #ffffff;
+    --text-light: #f1f5f9;
+    --bg-dark-hover: rgba(0, 0, 0, 0.1);
+    --bg-dropdown: #ffffff;
+    --text-dark: #334155;
+    --border-light: #e2e8f0;
+  
+    --shadow-header: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --shadow-dropdown: 0 6px 20px rgba(0, 0, 0, 0.15);
+  
+    --border-radius: 8px;
+    --transition-speed: 0.2s ease-in-out;
+  }
+  
+  /* ==========================================================================
+     2. CONTAINER PRINCIPAL DO CABEÇALHO
+     ========================================================================== */
+  .app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1.5rem;
+    height: 70px;
+    background-color: var(--senai-red);
+    color: var(--white);
+    box-shadow: var(--shadow-header);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+  
+  /* ==========================================================================
+     3. LOGO
+     ========================================================================== */
+  .logo-container {
+    cursor: pointer;
+  }
+  
+  .logo {
+    height: 45px;
+    object-fit: contain;
+    transition: transform var(--transition-speed), filter var(--transition-speed);
+  }
+  .logo:hover {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+  }
+  
+  /* ==========================================================================
+     4. PERFIL E MENU DROPDOWN
+     ========================================================================== */
+  .profile-container {
+    position: relative;
+  }
+  
+  .profile-button {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background-color: transparent;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.5rem;
+    color: inherit;
+    cursor: pointer;
+    transition: background-color var(--transition-speed);
+  }
+  .profile-button:hover {
+    background-color: var(--bg-dark-hover);
+  }
+  .profile-button:focus-visible {
+    outline: 2px solid var(--white);
+    outline-offset: 2px;
+  }
+  
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--senai-red-dark);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border: 2px solid var(--white);
+  }
+  
+  .user-name {
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  
+  .profile-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background-color: var(--bg-dropdown);
+    color: var(--text-dark);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-dropdown);
+    min-width: 220px;
+    padding: 0.5rem 0;
+    z-index: 1001;
+    opacity: 0;
+    transform: translateY(10px);
+    visibility: hidden;
+    animation: slideIn 0.2s forwards ease-out;
+  }
+  @keyframes slideIn {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+      visibility: visible;
+    }
+  }
+  
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-dark);
+    text-decoration: none;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+  }
+  .dropdown-item:hover, .dropdown-item:focus {
+    background-color: #f1f5f9;
+    outline: none;
+  }
+  .dropdown-item--logout {
+    color: var(--senai-red);
+    font-weight: 600;
+    border-top: 1px solid var(--border-light);
+    justify-content: space-between;
+  }
+  
+  .dropdown-item--logout:hover {
+    background-color: #fee2e2;
+  }
+  
+  /* ==========================================================================
+     5. RESPONSIVIDADE
+     ========================================================================== */
+  @media (max-width: 600px) {
+    .app-header {
+      padding: 0 1rem;
+    }
+  
+    /* Esconde o nome do usuário, mantendo apenas o avatar */
+    .user-name {
+      display: none;
+    }
+  
+    .profile-button {
+      padding: 0.25rem;
+    }
+  }

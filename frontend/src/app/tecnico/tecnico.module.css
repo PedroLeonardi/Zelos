@@ -1,449 +1,344 @@
-:root {
-  /* Cores Primárias */
-  --color-primary: #D32F2F;        /* SENAI Red */
-  --color-primary-dark: #B71C1C;   /* SENAI Red Darker */
+/* ==========================================================================
+   1. CONFIGURAÇÃO E VARIÁVEIS GLOBAIS
+   ========================================================================== */
+   :root {
+    /* Paleta de Cores Inspirada no SENAI */
+    --color-primary: #D32F2F;       
+    --color-primary-dark: #B71C1C;
+    --color-action: #f97316; /* Laranja para ações de "iniciar" */
+    --color-action-dark: #ea580c;
+  
+    /* Tons de Cinza e UI */
+    --color-bg-page: #f4f5f7;
+    --color-bg-component: #ffffff;
+    --color-bg-column: #e9ebee;
+    --color-border: #dfe1e6;
+    --color-text-primary: #172b4d;
+    --color-text-secondary: #5e6c84;
+    --color-white: #fff;
+    
+    /* Cores de Feedback */
+    --color-success: #16a34a;
+    --color-warning: #f59e0b;
+    --color-error: #dc2626;
+    --color-info: #3b82f6;
+  
+    /* Tipografia */
+    --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-size-base: 14px;
+    --font-weight-regular: 400;
+    --font-weight-bold: 600;
+  
+    /* Layout e Espaçamento */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --border-radius-sm: 4px;
+    --border-radius-md: 8px;
+    --max-width-container: 1400px;
+    --transition-speed: 0.2s ease-in-out;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
 
-  /* Cores de UI (Interface do Usuário) */
-  --color-light-gray: #f8f8f8;
-  --color-medium-gray: #ddd;
-  --color-dark-gray: #333;
-  --color-text-default: #444;
-  --color-text-light: #666;
+  /* ======================= MODO ESCURO ======================= */
+body.dark {
+  --color-bg-page: #121212;
+  --color-bg-component: #1e1e1e;
+  --color-bg-column: #1a1a1a;
+  --color-border: #333333;
+  --color-text-primary: #e0e0e0;
+  --color-text-secondary: #aaaaaa;
   --color-white: #fff;
-  --color-border: #e0e0e0;
 
-  /* Cores de Status e Prioridade */
-  --color-priority-high: var(--color-primary);
-  --color-priority-medium: #ffc107;
-  --color-priority-low: #17a2b8;
+  --color-primary: #f44336;
+  --color-primary-dark: #d32f2f;
+  --color-action: #ff9800;
+  --color-action-dark: #fb8c00;
 
-  /* Tipografia */
-  --font-family-base: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  --font-size-base: 14px;
-  --font-weight-regular: 400;
-  --font-weight-bold: 600;
-  --font-weight-bolder: 700;
-
-  /* Layout e Espaçamento */
-  --spacing-xs: 0.25rem; /* 4px */
-  --spacing-sm: 0.5rem;  /* 8px */
-  --spacing-md: 1rem;    /* 16px */
-  --spacing-lg: 1.5rem;  /* 24px */
-  --border-radius: 6px;
-  --max-width-container: 1200px;
-  --transition-speed: 0.2s ease;
+  --color-success: #4caf50;
+  --color-warning: #ffb300;
+  --color-error: #f44336;
+  --color-info: #2196f3;
 }
 
-/* ========================================================================== */
-/* 2. ESTILOS DE BASE E ANIMAÇÕES                                             */
-/* ========================================================================== */
-
-body {
-  font-family: var(--font-family-base);
-  font-size: var(--font-size-base);
-  color: var(--color-text-default);
-  background-color: var(--color-white);
-  line-height: 1.5;
+/* ======================= AJUSTES ESPECÍFICOS ======================= */
+body.dark .searchBox {
+  background-color: #1e1e1e;
+  color: var(--color-text-secondary);
+  border: 1px solid #444;
 }
 
-/* Animação de entrada para containers */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
+body.dark .kanbanColumn {
+  background-color: var(--color-bg-column);
+}
+
+body.dark .ticketCard {
+  background-color: var(--color-bg-component);
+  border-left-color: var(--priority-color, #555);
+}
+
+body.dark .modalContent {
+  background-color: var(--color-bg-component);
+  color: var(--color-text-primary);
+}
+
+body.dark .modal__imageContainer {
+  background-color: var(--color-bg-component);
+  border: 1px solid #333;
+}
+
+body.dark .button--secondary {
+  background-color: #1e1e1e;
+  border-color: #444;
+  color: var(--color-text-secondary);
+}
+
+body.dark .toaster--warning {
+  color: #000;
+}
+
+  
+  /* ==========================================================================
+     2. ESTILOS DE BASE E ANIMAÇÕES
+     ========================================================================== */
+  body {
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-base);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-page);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
-}
-
-/* ========================================================================== */
-/* 3. LAYOUT PRINCIPAL                                                         */
-/* ========================================================================== */
-
-.container {
-  max-width: var(--max-width-container);
-  margin: 0 auto;
-  padding: var(--spacing-lg) var(--spacing-md);
-  animation: fadeIn 0.4s ease forwards;
-}
-
-.header {
-  margin-bottom: var(--spacing-lg);
-}
-
-.header__title {
-  font-size: 2rem;
-  font-weight: var(--font-weight-bolder);
-  color: var(--color-primary);
-  margin-bottom: var(--spacing-xs);
-}
-
-.header__subtitle {
-  font-size: 1rem;
-  color: var(--color-text-light);
-  margin: 0;
-  font-weight: var(--font-weight-regular);
-}
-
-/* ========================================================================== */
-/* 4. COMPONENTE: KANBAN BOARD                                                 */
-/* ========================================================================== */
-
-.kanban {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: var(--spacing-md);
-}
-
-.kanban__column {
-  background-color: var(--color-light-gray);
-  border-radius: var(--border-radius);
-  padding: var(--spacing-sm);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.kanban__column-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: var(--spacing-sm);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.kanban__column-title {
-  font-size: 0.8rem;
-  font-weight: var(--font-weight-bolder);
-  color: var(--color-dark-gray);
-  letter-spacing: 1.2px;
-  margin: 0;
-  text-transform: uppercase;
-}
-
-.kanban__ticket-count {
-  background-color: var(--color-medium-gray);
-  color: var(--color-dark-gray);
-  font-weight: var(--font-weight-bolder);
-  font-size: 0.75rem;
-  padding: 2px 8px;
-  border-radius: 50px;
-}
-
-/* ========================================================================== */
-/* 5. COMPONENTE: TICKET CARD                                                  */
-/* ========================================================================== */
-
-.ticket-card {
-  background: var(--color-white);
-  border-radius: var(--border-radius);
-  padding: var(--spacing-sm);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  border-left: 5px solid var(--color-medium-gray); /* Borda padrão */
-  transition: transform var(--transition-speed), box-shadow var(--transition-speed);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-  cursor: grab;
-  will-change: transform, box-shadow;
-}
-
-.ticket-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-}
-
-/* Modificadores de Prioridade */
-.ticket-card--priority-high {
-  border-left-color: var(--color-priority-high);
-}
-.ticket-card--priority-medium {
-  border-left-color: var(--color-priority-medium);
-}
-.ticket-card--priority-low {
-  border-left-color: var(--color-priority-low);
-}
-
-.ticket-card__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.ticket-card__id {
-  font-weight: var(--font-weight-bolder);
-  font-size: 0.75rem;
-  color: var(--color-text-light);
-}
-
-.ticket-card__title {
-  font-size: 1rem;
-  font-weight: var(--font-weight-bold);
-  margin: 0;
-  color: var(--color-dark-gray);
-}
-
-.ticket-card__sector {
-  font-size: 0.85rem;
-  color: var(--color-text-light);
-  line-height: 1.4;
-}
-
-.ticket-card__actions {
-  display: flex;
-  gap: var(--spacing-sm);
-  justify-content: flex-end;
-  margin-top: var(--spacing-sm);
-}
-
-/* ========================================================================== */
-/* 6. COMPONENTE: BOTÕES E TAGS                                                */
-/* ========================================================================== */
-
-.button {
-  font-size: 0.8rem;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: 4px;
-  font-weight: var(--font-weight-bold);
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: background-color var(--transition-speed), color var(--transition-speed), border-color var(--transition-speed);
-  text-align: center;
-  text-decoration: none;
-}
-
-.button--primary {
-  background-color: var(--color-primary);
-  color: var(--color-white);
-}
-
-.button--primary:hover,
-.button--primary:focus {
-  background-color: var(--color-primary-dark);
-  color: var(--color-white);
-}
-
-.button--secondary {
-  background-color: transparent;
-  border-color: var(--color-medium-gray);
-  color: var(--color-text-light);
-}
-
-.button--secondary:hover,
-.button--secondary:focus {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-  background-color: rgba(211, 47, 47, 0.05);
-}
-
-.priority-tag {
-  font-size: 0.7rem;
-  font-weight: var(--font-weight-bold);
-  padding: 2px 6px;
-  border-radius: 4px;
-  color: var(--color-white);
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.priority-tag--high {
-  background-color: var(--color-priority-high);
-}
-
-.priority-tag--medium {
-  background-color: var(--color-priority-medium);
-  color: var(--color-dark-gray); /* Melhor contraste */
-}
-
-.priority-tag--low {
-  background-color: var(--color-priority-low);
-}
-
-/* ========================================================================== */
-/* 7. COMPONENTE: MODAL                                                       */
-/* ========================================================================== */
-.modal__overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  z-index: 1000;
-}
-
-
-
-.modal__content {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: var(--color-white);
-  border-radius: var(--border-radius);
-  max-width: 500px;
-  width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: var(--spacing-lg);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  z-index: 1001; /* acima do overlay */
-}
-
-.modal__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: var(--spacing-sm);
-}
-
-.modal__title {
-  font-size: 1.5rem;
-  color: var(--color-primary);
-  margin: 0;
-  font-weight: var(--font-weight-bolder);
-}
-
-.modal__close-button {
-  font-size: 1.5rem;
-  border: none;
-  background: transparent;
-  color: var(--color-text-light);
-  cursor: pointer;
-  font-weight: var(--font-weight-bold);
-  line-height: 1;
-  padding: var(--spacing-xs);
-  border-radius: 50%;
-  transition: background-color var(--transition-speed), color var(--transition-speed);
-}
-
-.modal__close-button:hover,
-.modal__close-button:focus {
-  color: var(--color-primary);
-  background-color: var(--color-light-gray);
-}
-
-.modal__body p {
-  margin: var(--spacing-xs) 0;
-  font-size: 0.95rem;
-  line-height: 1.6;
-}
-
-/* ========================================================================== */
-/* 8. COMPONENTE: FORMULÁRIOS                                                 */
-/* ========================================================================== */
-
-.form-group {
-  margin-bottom: var(--spacing-md);
-}
-
-.form-label {
-  font-weight: var(--font-weight-bold);
-  font-size: 0.9rem;
-  display: block;
-  margin-bottom: var(--spacing-sm);
-  color: var(--color-dark-gray);
-}
-
-.form-textarea {
-  width: 100%;
-  min-height: 60px;
-  resize: vertical;
-  padding: var(--spacing-sm);
-  font-size: 0.9rem;
-  border-radius: var(--border-radius);
-  border: 1px solid var(--color-border);
-  font-family: inherit;
-  color: var(--color-text-default);
-  transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
-}
-
-.form-textarea:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.15);
-}
-
-/* Botão de submissão do formulário no modal */
-.apontamento-form__button {
-  width: 100%;
-  margin-top: var(--spacing-sm);
-  padding-top: var(--spacing-sm);
-  padding-bottom: var(--spacing-sm);
-  font-size: 1rem;
-}
-
-/* ========================================================================== */
-/* 9. COMPONENTE: TOASTER / ALERTS AVANÇADOS                                   */
-/* ========================================================================== */
-
-.toaster-container {
-  position: fixed;
-  top: var(--spacing-lg);
-  right: var(--spacing-lg);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-  z-index: 2000;
-}
-
-.toaster {
-  min-width: 250px;
-  max-width: 320px;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--border-radius);
-  color: var(--color-white);
-  font-weight: var(--font-weight-bold);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  opacity: 0;
-  transform: translateX(100%);
-  animation: slideIn 0.4s forwards, fadeOut 0.4s forwards 3s;
-  pointer-events: auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.toaster-success {
-  background-color: #28a745; /* verde */
-}
-
-.toaster-error {
-  background-color: #dc3545; /* vermelho */
-}
-
-.toaster-warning {
-  background-color: #ffc107; /* amarelo */
-  color: #333;
-}
-
-.toaster-close {
-  margin-left: var(--spacing-sm);
-  cursor: pointer;
-  font-weight: bolder;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(100%);
+  
+  /* ==========================================================================
+     3. LAYOUT PRINCIPAL E CABEÇALHO
+     ========================================================================== */
+  .container {
+    max-width: var(--max-width-container);
+    margin: 0 auto;
+    padding: var(--spacing-lg) var(--spacing-xl);
+    animation: fadeIn 0.5s ease-out;
   }
-  to {
-    opacity: 1;
-    transform: translateX(0);
+  
+  .pageHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
   }
-}
-
-@keyframes fadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
-}
-
+  
+  .pageTitle {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0;
+  }
+  
+  .pageSubtitle {
+    font-size: 1rem;
+    color: var(--color-text-secondary);
+    margin-top: var(--spacing-xs);
+  }
+  
+  /* ==========================================================================
+     4. BARRA DE FILTROS
+     ========================================================================== */
+  .filtersBar {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    background-color: var(--color-bg-component);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-sm);
+    flex-wrap: wrap;
+  }
+  
+  .searchBox {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    background-color: var(--color-bg-page);
+    border-radius: var(--border-radius-sm);
+    padding: 0 var(--spacing-sm);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+  }
+  .searchBox:focus-within {
+    border-color: var(--color-action);
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
+  }
+  .searchBox input {
+    border: none;
+    background: transparent;
+    padding: var(--spacing-sm) var(--spacing-xs);
+    width: 100%;
+    font-size: 0.9rem;
+    color: var(--color-text-primary);
+  }
+  .searchBox input:focus { outline: none; }
+  
+  .filterGroup { display: flex; gap: var(--spacing-md); flex-wrap: wrap; }
+  .filterGroup select {
+    padding: var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--color-border);
+    background-color: var(--color-bg-page);
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  
+  .userSwitch { display: flex; align-items: center; gap: var(--spacing-sm); font-size: 0.9rem; color: var(--color-text-secondary); }
+  .switchWrapper { position: relative; display: inline-block; width: 40px; height: 22px; }
+  .switch { opacity: 0; width: 0; height: 0; }
+  .switchSlider { position: absolute; cursor: pointer; inset: 0; background-color: #ccc; transition: .4s; border-radius: 22px; }
+  .switchSlider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+  .switch:checked + .switchSlider { background-color: var(--color-primary); }
+  .switch:focus-visible + .switchSlider { box-shadow: 0 0 0 2px var(--color-action); }
+  .switch:checked + .switchSlider:before { transform: translateX(18px); }
+  
+  /* ==========================================================================
+     5. KANBAN BOARD
+     ========================================================================== */
+  .kanban { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--spacing-md); align-items: start; }
+  .kanbanColumn { background-color: var(--color-bg-column); border-radius: var(--border-radius-md); display: flex; flex-direction: column; }
+  .kanbanColumn__header { display: flex; justify-content: space-between; align-items: center; padding: var(--spacing-sm) var(--spacing-md); border-bottom: 3px solid var(--status-color, var(--color-border)); }
+  .kanbanColumn__title { font-size: 0.9rem; font-weight: var(--font-weight-bold); text-transform: uppercase; letter-spacing: 0.5px; margin: 0; color: var(--color-text-primary); }
+  .kanbanColumn__count { background-color: var(--color-border); color: var(--color-text-secondary); font-weight: var(--font-weight-bold); font-size: 0.8rem; padding: var(--spacing-xs) var(--spacing-sm); border-radius: 12px; }
+  .kanbanColumn__ticketsList { padding: var(--spacing-sm); display: flex; flex-direction: column; gap: var(--spacing-sm); min-height: 150px; }
+  .kanbanColumn__empty { text-align: center; padding: var(--spacing-xl); color: var(--color-text-secondary); font-size: 0.9rem; border: 2px dashed var(--color-border); border-radius: var(--border-radius-sm); margin: var(--spacing-sm); }
+  
+  /* ==========================================================================
+     6. TICKET CARD
+     ========================================================================== */
+  .ticketCard {
+    background: var(--color-bg-component); border-radius: var(--border-radius-sm); padding: var(--spacing-md);
+    box-shadow: var(--shadow-sm); border-left: 5px solid var(--priority-color, var(--color-border));
+    transition: transform var(--transition-speed), box-shadow var(--transition-speed); cursor: grab;
+  }
+  .ticketCard:hover, .ticketCard:focus-visible { transform: translateY(-4px); box-shadow: var(--shadow-md); outline: none; }
+  .ticketCard__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-sm); }
+  .ticketCard__id { font-weight: var(--font-weight-bold); font-size: 0.8rem; color: var(--color-text-secondary); }
+  .ticketCard__title { font-size: 1.05rem; font-weight: var(--font-weight-bold); margin: 0 0 var(--spacing-xs); color: var(--color-text-primary); }
+  .ticketCard__sector { font-size: 0.85rem; color: var(--color-text-secondary); margin-bottom: var(--spacing-md); }
+  .ticketCard__actions { display: flex; gap: var(--spacing-sm); justify-content: flex-end; }
+  
+  /* === ESTILOS PARA IMAGEM NO CARD (COM REDUÇÃO DE ALTURA) === */
+  .ticketCard__imageWrapper {
+    margin: var(--spacing-sm) 0 var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
+    cursor: pointer;
+    border: 1px solid var(--color-border);
+  }
+  .ticketCard__image {
+    display: block; width: 100%;
+    aspect-ratio: 2 / 1; /* <-- MUDANÇA: IMAGEM MAIS LARGA, MENOS ALTA */
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+  .ticketCard__imageWrapper:hover .ticketCard__image {
+    transform: scale(1.05);
+  }
+  
+  /* ==========================================================================
+     7. BOTÕES E TAGS
+     ========================================================================== */
+  .button { font-size: 0.85rem; padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--border-radius-sm); font-weight: var(--font-weight-bold); cursor: pointer; border: 1px solid transparent; transition: all var(--transition-speed); text-align: center; }
+  .button:focus-visible { outline: 2px solid var(--color-action); outline-offset: 2px; }
+  .button--primary { background-color: var(--color-primary); color: var(--color-white); }
+  .button--primary:hover { background-color: var(--color-primary-dark); }
+  .button--secondary { background-color: var(--color-bg-page); border-color: var(--color-border); color: var(--color-text-secondary); }
+  .button--secondary:hover { border-color: var(--color-primary); color: var(--color-primary); background-color: rgba(211, 47, 47, 0.05); }
+  .button--action { background-color: var(--color-action); color: var(--color-white); }
+  .button--action:hover { background-color: var(--color-action-dark); }
+  .button--fullWidth { width: 100%; padding: var(--spacing-sm); font-size: 1rem; }
+  
+  .priorityTag { font-size: 0.75rem; font-weight: var(--font-weight-bold); padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--border-radius-sm); color: var(--color-white); text-transform: capitalize; }
+  .statusBadge { padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--border-radius-sm); background-color: var(--status-color, #ccc); color: var(--color-white); font-weight: var(--font-weight-bold); font-size: 0.8rem; }
+  
+  /* ==========================================================================
+     8. MODAL
+     ========================================================================== */
+  @keyframes fadeInModal { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideInModal { from { transform: translate(-50%, -45%); opacity: 0.8; } to { transform: translate(-50%, -50%); opacity: 1; } }
+  
+  .modalOverlay { position: fixed; inset: 0; background: rgba(17, 43, 77, 0.6); backdrop-filter: blur(4px); z-index: 1000; animation: fadeInModal 0.3s ease; }
+  .modalContent { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--color-bg-component); border-radius: var(--border-radius-md); max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg); z-index: 1001; animation: slideInModal 0.3s ease-out; }
+  .modalHeader { display: flex; justify-content: space-between; align-items: flex-start; padding: var(--spacing-md) var(--spacing-lg); border-bottom: 1px solid var(--color-border); }
+  .modal__id { font-size: 0.8rem; font-weight: 700; color: var(--color-text-secondary); margin-bottom: var(--spacing-xs); }
+  .modalTitle { font-size: 1.5rem; color: var(--color-text-primary); margin: 0; }
+  .modalCloseButton { font-size: 1.8rem; border: none; background: transparent; color: var(--color-text-secondary); cursor: pointer; line-height: 1; padding: 0; transition: color var(--transition-speed); }
+  .modalCloseButton:hover { color: var(--color-primary); }
+  .modalBody { padding: var(--spacing-lg); }
+  
+  /* === ESTILOS PARA IMAGEM NO MODAL (COM REDUÇÃO DE ALTURA) === */
+  .modal__imageContainer {
+    width: 100%;
+    margin-bottom: var(--spacing-lg);
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    background-color: var(--color-bg-page);
+    border: 1px solid var(--color-border);
+  }
+  .modal__image {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 250px; /* <-- MUDANÇA: ALTURA MÁXIMA REDUZIDA */
+    object-fit: cover;
+  }
+  
+  .modalInfoGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--spacing-md); margin-bottom: var(--spacing-md); }
+  .modalInfoGrid p { margin: 0; font-size: 0.9rem; color: var(--color-text-secondary); }
+  .modalInfoGrid p strong { color: var(--color-text-primary); display: block; margin-bottom: var(--spacing-xs); }
+  .modalSeparator { border: none; border-top: 1px solid var(--color-border); margin: var(--spacing-lg) 0; }
+  .modalNotice { background-color: var(--color-bg-page); padding: var(--spacing-md); border-radius: var(--border-radius-sm); color: var(--color-text-secondary); text-align: center; }
+  
+  /* ==========================================================================
+     9. FORMULÁRIOS DO MODAL
+     ========================================================================== */
+  .reportForm h4 { font-size: 1.2rem; margin-bottom: var(--spacing-md); }
+  .formGroup { margin-bottom: var(--spacing-md); }
+  .formGroup label { font-weight: var(--font-weight-bold); font-size: 0.9rem; display: block; margin-bottom: var(--spacing-sm); color: var(--color-text-primary); }
+  .formGroup input, .formGroup textarea { width: 100%; padding: var(--spacing-sm); font-size: 0.95rem; border-radius: var(--border-radius-sm); border: 1px solid var(--color-border); font-family: inherit; color: var(--color-text-primary); transition: all var(--transition-speed); }
+  .formGroup input:focus, .formGroup textarea:focus { outline: none; border-color: var(--color-action); box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2); }
+  .formGroup textarea { min-height: 100px; resize: vertical; }
+  .formRow { display: flex; gap: var(--spacing-md); flex-wrap: wrap; }
+  .formRow .formGroup { flex: 1; min-width: 200px; }
+  .reportDetails { font-size: 0.95rem; }
+  .reportDetails h4 { font-size: 1.2rem; margin-bottom: var(--spacing-md); }
+  .reportDetails p { margin-bottom: var(--spacing-sm); }
+  
+  /* ==========================================================================
+     10. TOASTER / NOTIFICAÇÕES
+     ========================================================================== */
+  .toasterContainer { position: fixed; top: var(--spacing-lg); right: var(--spacing-lg); display: flex; flex-direction: column; gap: var(--spacing-md); z-index: 2000; }
+  
+  @keyframes slideInRight { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes fadeOutRight { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(110%); } }
+  
+  .toaster {
+    min-width: 280px; max-width: 350px; padding: var(--spacing-md); border-radius: var(--border-radius-md);
+    color: var(--color-white); font-weight: var(--font-weight-bold); box-shadow: var(--shadow-lg);
+    opacity: 0; animation: slideInRight 0.4s forwards, fadeOutRight 0.4s forwards 3.5s;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .toaster--success { background-color: var(--color-success); }
+  .toaster--error { background-color: var(--color-error); }
+  .toaster--warning { background-color: var(--color-warning); color: var(--color-text-primary); }
+  .toaster--info { background-color: var(--color-info); }
+  .toasterClose { margin-left: var(--spacing-md); cursor: pointer; font-weight: bolder; background: none; border: none; color: inherit; font-size: 1.2rem; opacity: 0.7; transition: opacity var(--transition-speed); }
+  .toasterClose:hover { opacity: 1; }
