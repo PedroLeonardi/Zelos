@@ -78,15 +78,17 @@ async function create(table, data) {
     }
 }
 
-async function update(table, data, id) {
+async function update(table, data, where) {
     const connection = await getConnection();
     try {
+        // monta os SET
         const set = Object.keys(data)
             .map(column => `${column} = ?`)
             .join(', ');
 
-        const sql = `UPDATE ${table} SET ${set} WHERE id = ?`; 
-        const values = [...Object.values(data), id];           
+        // usa o where direto como string
+        const sql = `UPDATE ${table} SET ${set} WHERE ${where}`;
+        const values = Object.values(data);
 
         const [result] = await connection.execute(sql, values);
         return result.affectedRows;
@@ -94,6 +96,7 @@ async function update(table, data, id) {
         connection.release();
     }
 }
+
 
 
 // Função para excluir um registro

@@ -64,7 +64,8 @@ router.post('/login', (req, res, next) => {
 
         // ETAPA 3: Criação do Token e Resposta Final
         const token = jwt.sign({
-          id: usuarioDoBanco.ra,
+          id: usuarioDoBanco.id,
+          id_login: usuarioDoBanco.id_login,
           funcao: usuarioDoBanco.funcao
         }, JWT_SECRET, { expiresIn: '1h' });
 

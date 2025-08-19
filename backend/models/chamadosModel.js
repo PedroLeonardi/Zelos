@@ -14,7 +14,7 @@ const createChamados = ( data) => {
         return create("chamados", {
             titulo: data.titulo,
             descricao: data.descricao,
-            n_patrimonio: data.n_patrimonio,
+            patrimonio_id: data.patrimonio_id,
             servicos_id: data.servicos_id,
             tecnico_id: data.tecnico_id,
             usuario_id: data.usuario_id
@@ -31,21 +31,25 @@ const updateChamados = (data, id) =>{
         return update ("chamados", {
             titulo: data.titulo,
             descricao: data.descricao,
-            n_patrimonio: data.n_patrimonio,
+            patrimonio_id: data.patrimonio_id,
             servicos_id: data.servicos_id,
             tecnico_id: data.tecnico_id,
-        }, `id = ${id}` )
+
+
+
+            
+        },`id = '${id}'` )
     } catch (err) {
         console.error("Erro ao atualizar Chamado: ", err)
         throw err
     }
 }
 
-const respondChamados = (data) => {
+const respondChamados = (data, id) => {
     try {
         return update ("chamados", {
             status: data.status
-        }  `id = ${id}` )
+        } , `id = '${id}'` )
     } catch (err) {
         console.error("Erro ao alterar o status Chamados: ", err)
         throw err;

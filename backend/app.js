@@ -7,6 +7,8 @@ import passport from './config/ldap.js';
 import servico from './routes/servicoRotas.js'
 import chamados from "./routes/chamadosRotas.js"
 import relatorio from "./routes/relatorioRotas.js"
+import user from "./routes/userRotas.js"
+
 // 1. Carrega variáveis de ambiente PRIMEIRO
 dotenv.config();
 
@@ -44,6 +46,7 @@ try {
 // 5. Rotas
 app.use('/auth', authRotas);
 
+// chamados funcionando liso
 app.use("/chamados", chamados)
 
 //a rota servico ta fucionando todas
@@ -51,6 +54,8 @@ app.use('/servico', servico)
 
 //a rota relatorio ta fucionando todas
 app.use('/relatorio', relatorio)
+
+app.use('/user', user) 
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'online' });

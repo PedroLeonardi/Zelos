@@ -4,12 +4,14 @@ const createChamadosContrroler = async (req, res) => {
     try {
 
         try {
-            const data = await readFilterChamados({key:"n_patrimonio", value: req.body.n_patrimonio})
+            const data = await readFilterChamados({key:"patrimonio_id", value: req.body.patrimonio_id})
+            const encontrado = data.find(item => item.patrimonio_id == req.body.patrimonio_id)
+            console.log(encontrado, "-----------------------------------------")
 
-            const encontrado = data.find(item => item.n_patrimonio === req.body.n_patrimonio)
+
             if (data.length === 0 || encontrado.status != "pendente"){
                 console.log("DEU BOM -------------------------------------------------")
-                        await createChamados( req.body);
+                        await createChamados(req.body);
         return res.status(201).json({mensagem:"Chamado criado com sucesso"});
             } else {
                 console.log("DEU RUIM -------------------------------------------------")
@@ -32,8 +34,11 @@ const updateChamadosController = async (req, res) => {
     try{
 
         const data = await readFilterChamados({key:"id", value: req.params.id})
-
-        const encontrado = data.find(item => item.n_patrimonio === req.body.n_patrimonio)
+        console.log("req.body.patrimonio_id:", req.body.patrimonio_id);
+        console.log("data retornada:", data);
+        
+        const encontrado = data.find(item => Number(item.id) === Number(req.params.id));
+        console.log("encontrado:", encontrado);
         if (data.length === 0 || encontrado.status != "concluído"){
 
         
@@ -58,12 +63,10 @@ const respondChamadosController = async (req, res) => {
 
     try {
         const data = await readFilterChamados({key:"id", value: req.params.id})
-
-        const encontrado = data.find(item => item.id === req.params.id)
-        if (data.length === 0 || encontrado.status != "concluído"){
+        if (data.length === 0 || data.status != "concluído"){
 
             try {
-                await respondChamados(req.body);
+                await respondChamados(req.body, req.params.id);
                 return res.status(201).json({mensagem:"Status do Chamados alterado"})
             } catch  (err) {
                 console.error ("Erro ao atualizar o status de um chamado: ", err)
