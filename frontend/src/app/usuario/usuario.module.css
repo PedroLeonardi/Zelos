@@ -253,6 +253,7 @@
     width: 100%; border: 1px solid var(--border-color);
     border-radius: var(--border-radius-md); font-size: 1rem; padding: 0.75rem;
     transition: all var(--transition-speed);
+    box-sizing: border-box; /* Garante que padding não afete a largura total */
   }
   .formGroup input:focus, .formGroup select:focus, .formGroup textarea:focus {
     border-color: var(--senai-red); outline: none;
@@ -262,6 +263,36 @@
     display: flex; gap: var(--spacing-md); justify-content: flex-end;
     margin-top: var(--spacing-xl);
   }
+
+  /* ESTILOS ADICIONADOS PARA UPLOAD DE IMAGEM */
+  .uploadButton {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    transition: all var(--transition-speed);
+    color: var(--text-secondary);
+  }
+
+  .uploadButton:hover {
+    border-color: #d1d5db;
+    background-color: var(--bg-page);
+  }
+
+  .uploadButton span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .uploadButton input[type="file"] {
+    display: none;
+  }
+
   /* ==========================================================================
      8. NOTIFICAÇÕES (TOASTERS)
      ========================================================================== */

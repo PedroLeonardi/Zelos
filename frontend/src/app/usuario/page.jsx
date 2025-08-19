@@ -7,6 +7,7 @@ import Header from '../components/Header'; // <-- IMPORTAÇÃO ATIVADA
 // --- ÍCONES ---
 const PlusIcon = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>;
 const SpinnerIcon = () => <svg className={styles.spinner} viewBox="0 0 50 50"><circle className={styles.spinnerPath} cx="25" cy="25" r="20" fill="none" strokeWidth="5"></circle></svg>;
+const PaperclipIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>;
 
 
 // --- CONFIGURAÇÃO CENTRALIZADA (COMO UM MINI DESIGN SYSTEM) ---
@@ -67,7 +68,14 @@ const TicketCard = ({ ticket, onViewDetails }) => {
 };
 
 const TicketModal = ({ modalConfig, onClose, onCreateTicket }) => {
-  const [newTicket, setNewTicket] = useState({ title: '', description: '', type: 'manutencao' });
+  const [newTicket, setNewTicket] = useState({ 
+    title: '', 
+    description: '', 
+    type: 'manutencao',
+    patrimony: '', // <-- NOVO ESTADO
+    image: null    // <-- NOVO ESTADO
+  });
+  const [imageName, setImageName] = useState('');
   const titleInputRef = useRef(null);
 
   useEffect(() => {
@@ -80,6 +88,14 @@ const TicketModal = ({ modalConfig, onClose, onCreateTicket }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     onCreateTicket(newTicket);
+  };
+
+  const handleImageChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setNewTicket({ ...newTicket, image: file });
+      setImageName(file.name);
+    }
   };
   
   // Tratamento de tecla ESC para fechar modal
@@ -101,9 +117,18 @@ const TicketModal = ({ modalConfig, onClose, onCreateTicket }) => {
             <h2 className={styles.modalTitle}>Abrir Novo Chamado</h2>
             <form onSubmit={handleSubmit}>
               <div className={styles.formGroup}>
-                <label htmlFor="title">Título / Patrimônio</label>
-                <input ref={titleInputRef} id="title" type="text" placeholder="Ex: PC-LAB05-01, Projetor do Auditório" value={newTicket.title} onChange={(e) => setNewTicket({ ...newTicket, title: e.target.value })} required />
+                <label htmlFor="title">Título do Chamado</label>
+                <input ref={titleInputRef} id="title" type="text" placeholder="Ex: Projetor do auditório não liga" value={newTicket.title} onChange={(e) => setNewTicket({ ...newTicket, title: e.target.value })} required />
               </div>
+
+              {/* ========================================================== */}
+              {/* =================== CAMPO ADICIONADO =================== */}
+              <div className={styles.formGroup}>
+                <label htmlFor="patrimony">Número do Patrimônio (Opcional)</label>
+                <input id="patrimony" type="text" placeholder="Ex: 12345678" value={newTicket.patrimony} onChange={(e) => setNewTicket({ ...newTicket, patrimony: e.target.value })} />
+              </div>
+              {/* ========================================================== */}
+
               <div className={styles.formGroup}>
                 <label htmlFor="type">Tipo de Serviço</label>
                 <select id="type" value={newTicket.type} onChange={(e) => setNewTicket({ ...newTicket, type: e.target.value })}>
@@ -116,6 +141,19 @@ const TicketModal = ({ modalConfig, onClose, onCreateTicket }) => {
                 <label htmlFor="description">Descrição do Problema</label>
                 <textarea id="description" rows="5" placeholder="Descreva o problema ou a sua necessidade com o máximo de detalhes." value={newTicket.description} onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })} required />
               </div>
+
+              {/* ========================================================== */}
+              {/* =================== CAMPO ADICIONADO =================== */}
+              <div className={styles.formGroup}>
+                <label htmlFor="image-upload">Anexar Imagem (Opcional)</label>
+                <label className={styles.uploadButton}>
+                  <PaperclipIcon />
+                  <span>{imageName || 'Escolher arquivo'}</span>
+                  <input id="image-upload" type="file" accept="image/*" onChange={handleImageChange} />
+                </label>
+              </div>
+              {/* ========================================================== */}
+
               <div className={styles.modalActions}>
                 <button type="button" className={`${styles.button} ${styles.buttonSecondary}`} onClick={onClose}>Cancelar</button>
                 <button type="submit" className={`${styles.button} ${styles.buttonPrimary}`}>Confirmar Abertura</button>
@@ -187,6 +225,7 @@ export default function UsuarioDashboard() {
   };
 
   const handleCreateTicket = (newTicketData) => {
+    console.log("Novo chamado:", newTicketData); // <-- Log para ver os dados, incluindo imagem
     const createdTicket = {
       id: `#${Math.floor(1000 + Math.random() * 9000)}`,
       status: 'Pendente',
