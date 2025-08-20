@@ -61,23 +61,48 @@ const createUser = async (data) =>{
     }
 }
 
-const updateUser = async (data, id) => {
+const updateUser = async (data) => {
     try {
+        // O identificador agora vem do próprio objeto 'data'
+        const id_login = data.id_login;
 
-        const conteudo  = {
-        nome: data.nome,
-        id_login: data.id_login,
-        email: data.email,
-        funcao: data.funcao
-        }
+        // Objeto com os dados que podem ser atualizados
+        const conteudo = {
+            nome: data.nome,
+            email: data.email,
+            funcao: data.funcao,
+            status: data.status // Incluí o status, pois ele também pode ser editado no modal
+        };
 
-        update("usuarios", conteudo, `id = ${id}`)
-        return ("Usuario atualizado com sucesso")
-    } catch (err){
-        console.log("Erro ao atualizar usuarios")
+
+        await update("usuarios", conteudo, `id_login = '${id_login}'`);
+        
+        return "Usuário atualizado com sucesso";
+
+    } catch (err) {
+        console.log("Erro na camada de serviço ao atualizar o usuário: ", err);
+        // Lança o erro para que o controller possa capturá-lo e enviar uma resposta adequada
         throw err;
     }
-}
+};
+
+// const updateUser = async (data, id) => {
+//     try {
+
+//         const conteudo  = {
+//         nome: data.nome,
+//         id_login: data.id_login,
+//         email: data.email,
+//         funcao: data.funcao
+//         }
+
+//         update("usuarios", conteudo, `id_login = ${id}`)
+//         return ("Usuario atualizado com sucesso")
+//     } catch (err){
+//         console.log("Erro ao atualizar usuarios")
+//         throw err;
+//     }
+// }
 
 const changeFuncao = async (data, id) => {
     try {

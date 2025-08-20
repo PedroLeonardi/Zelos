@@ -4,10 +4,13 @@ import auth from "../middlewares/authMiddleware.js"
 
 const router = express.Router();
 
+//auth,
+//auth,
 router.get("/get",  chamados.readAllChamadosController)
 router.get("/getFilter", chamados.readFilterChamadosController)
-router.post("/post", auth, chamados.createChamadosContrroler)
-router.put("/put/:id", auth, chamados.updateChamadosController)
+router.post("/post",  chamados.createChamadosContrroler)
+router.put("/put/:id",  chamados.updateChamadosController)
+router.put("/put",  chamados.updateChamadosControllerJson)
 router.put("/respond/:id", auth, chamados.respondChamadosController)
 
 export default router

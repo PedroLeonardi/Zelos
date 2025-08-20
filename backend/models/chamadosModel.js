@@ -26,24 +26,50 @@ const createChamados = ( data) => {
     }
 };
 
-const updateChamados = (data, id) =>{
+const updateChamados = (data) => {
     try {
-        return update ("chamados", {
+        const id = data.id;
+
+        // CORREÇÃO: Aplicado o operador '?? null' a todos os campos que podem ser nulos ou undefined
+        const dadosParaAtualizar = {
+            titulo: data.titulo,
+            descricao: data.descricao ?? null,
+            patrimonio_id: data.patrimonio_id ?? null,
+            servicos_id: data.servicos_id, // Este é NOT NULL, deve sempre existir
+            tecnico_id: data.tecnico_id ?? null,
+            status: data.status
+        };
+
+        return update("chamados", dadosParaAtualizar, `id = '${id}'`);
+    } catch (err) {
+        console.error("Erro ao atualizar Chamado: ", err);
+        throw err;
+    }
+};
+
+const updateChamadosJson = (data, id) => {
+    try {
+        // Objeto com os dados a serem atualizados.
+        // O operador '??' (nullish coalescing) garante que se o valor for undefined ou null,
+        // ele enviará 'null' para o banco de dados, evitando o erro.
+        const dadosParaAtualizar = {
             titulo: data.titulo,
             descricao: data.descricao,
-            patrimonio_id: data.patrimonio_id,
+            patrimonio_id: data.patrimonio_id ?? null,
             servicos_id: data.servicos_id,
-            tecnico_id: data.tecnico_id,
+            tecnico_id: data.tecnico_id ?? null,
+            status: data.status
+        };
 
-
-
-            
-        },`id = '${id}'` )
+        return update("chamados", dadosParaAtualizar, `id = '${id}'`);
     } catch (err) {
-        console.error("Erro ao atualizar Chamado: ", err)
-        throw err
+        console.error("Erro ao atualizar Chamado: ", err);
+        throw err;
     }
-}
+};
+
+
+
 
 const respondChamados = (data, id) => {
     try {
@@ -67,4 +93,4 @@ const readFilterChamados = ( filter) => {
     }
 };
 
-export {createChamados, readFilterChamados, readAllChamados, updateChamados, respondChamados};
+export {createChamados, readFilterChamados, readAllChamados, updateChamados, respondChamados,updateChamadosJson};

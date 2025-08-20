@@ -49,7 +49,7 @@ CREATE TABLE chamados (
     servicos_id INT NOT NULL,
     tecnico_id INT,                     
     usuario_id INT NOT NULL,            
-    status ENUM('pendente', 'em andamento','aguardando aprovação', 'concluído') DEFAULT 'pendente',
+    status ENUM('inativo','pendente', 'em andamento','aguardando aprovação', 'concluído') DEFAULT 'pendente',
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (patrimonio_id) REFERENCES patrimonio(id),
@@ -121,20 +121,30 @@ VALUES
 
 CREATE OR REPLACE VIEW View_Chamados AS
 SELECT
-    c.id            AS chamado_id,
-    c.titulo        AS chamado_titulo,
-    c.descricao     AS descricao,
-    c.status        AS chamado_status,
-    c.criado_em     AS data_criacao,
-    c.atualizado_em AS data_fechamento,
-    s.titulo        AS tipo_chamado,
-    pa.n_patrimonio AS numero_patrimonio,  
-    u.id            AS tecnico_id,
-    u.nome          AS tecnico_nome
-FROM chamados c
-LEFT JOIN servicos   s  ON c.servicos_id    = s.id
-LEFT JOIN patrimonio pa ON c.patrimonio_id  = pa.id
-LEFT JOIN usuarios   u  ON c.tecnico_id     = u.id;
+    c.id                AS chamado_id,
+    c.titulo            AS chamado_titulo,
+    c.descricao         AS descricao,
+    c.status            AS chamado_status,
+    c.criado_em         AS data_criacao,
+    c.atualizado_em     AS data_fechamento,
+    s.titulo            AS tipo_chamado,
+    pa.n_patrimonio     AS numero_patrimonio,
+    -- Dados do Técnico (quem está resolvendo)
+    tecnico.id          AS tecnico_id,
+    tecnico.nome        AS tecnico_nome,
+    -- Dados do Solicitante (quem criou o chamado)
+    solicitante.id      AS solicitante_id,
+    solicitante.nome    AS solicitante_nome -- <--- CAMPO ADICIONADO!
+FROM 
+    chamados c
+LEFT JOIN 
+    servicos s ON c.servicos_id = s.id
+LEFT JOIN 
+    patrimonio pa ON c.patrimonio_id = pa.id
+LEFT JOIN 
+    usuarios tecnico ON c.tecnico_id = tecnico.id -- Join para o técnico
+LEFT JOIN 
+    usuarios solicitante ON c.usuario_id = solicitante.id; -- Join para o solicitante
 
 
 
