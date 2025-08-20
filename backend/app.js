@@ -55,6 +55,7 @@ app.use('/servico', servico)
 //a rota relatorio ta fucionando todas
 app.use('/relatorio', relatorio)
 
+//a rota relatorio ta fucionando todas
 app.use('/user', user) 
 
 app.get('/health', (req, res) => {

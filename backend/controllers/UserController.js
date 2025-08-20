@@ -10,13 +10,35 @@ import {readAllUser, readUser, readUserEmail,   createUser, updateUser, changeSt
 //         return res.status(400).json({mensagem: "Erro ao criar Usuario"});
 //     };
 // };
-
-const updateUserController = async (req, res) => {
+// ------------------------------------------------------------------------------------------------------
+// const updateUserController = async (req, res) => {
     
-    try { 
-        const data = await readUser(req.params.id)
+//     try { 
+//         const data = await updateUser(req.params.id)
 
-        if (data.length != 0 ){
+//         if (data.length != 0 ){
+//             try{
+//                 await updateUser (req.body)
+//                 return res.status(200).json({mensagem: "Usuario atualizado com sucesso"})
+//             } catch (err) {
+//                 console.error("Erro ao atualizar um Usuario: ", err)
+//                 return res.status(400).json({mensagem: "Erro ao atualizar um Usuario"})
+//             }
+//         } else {
+//             return res.status(400).json({mensagem: "Erro ao atualizar um Usuario, usuario não encontrado"})
+//         }
+//     } catch (err) {
+//         console.error("Erro ao atualizar um Usuario: ", err)
+//         return res.status(400).json({mensagem: "Erro ao atualizar um Usuario 2"})
+//     }
+
+// }
+const updateUserController = async (req, res) => {
+    try {
+        const userData = req.body;
+
+
+        if (data.length != 0 || !userData || !userData.id_login ){
             try{
                 console.log("RESPOSTA", req.body)
                 await updateUser (req.body, req.params.id)
@@ -28,16 +50,18 @@ const updateUserController = async (req, res) => {
         } else {
             return res.status(400).json({mensagem: "Erro ao atualizar um Usuario, usuario não encontrado"})
         }
-    } catch (err) {
-        console.error("Erro ao atualizar um Usuario: ", err)
-        return res.status(400).json({mensagem: "Erro ao atualizar um Usuario 2"})
-    }
-    
-    
-    
-    
 
-}
+        // Chama a função de serviço para realizar a atualização
+        await updateUser(userData);
+        
+        return res.status(200).json({ mensagem: "Usuário atualizado com sucesso" });
+
+    } catch (err) {
+        // Captura qualquer erro que a função updateUser possa lançar
+        console.error("Erro no controller ao atualizar usuário: ", err);
+        return res.status(500).json({ mensagem: "Erro interno ao tentar atualizar o usuário." });
+    }
+};
 
 const changeStatusUserController = async (req, res) => {
     try { 
