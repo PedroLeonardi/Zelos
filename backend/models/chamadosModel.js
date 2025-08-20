@@ -54,11 +54,28 @@ const updateChamados = (data, id) =>{
 
 const respondChamados = (data, id) => {
     try {
-        return update ("chamados", {
+    
+        return update("chamados", {
             status: data.status
-        } , `id = '${id}'` )
+        }, `id = '${data.chamado_id}'`); 
     } catch (err) {
-        console.error("Erro ao alterar o status Chamados: ", err)
+        console.error("Erro ao alterar o status do Chamado: ", err); 
+        throw err;
+    }
+}
+
+// 📍 CORREÇÃO APLICADA
+// A lógica estava certa, mas a mensagem de erro foi melhorada para clareza.
+const atribuirChamados = (data, id) => {
+    try {
+        // A lógica aqui estava correta:
+        // - `id` (do técnico) é o valor a ser inserido.
+        // - `data.chamado_id` é usado para encontrar o chamado a ser atualizado.
+        return update("chamados", {
+            tecnico_id: id
+        }, `id = '${data.chamado_id}'`);
+    } catch (err) {
+        console.error("Erro ao atribuir o Chamado: ", err); // 👈 MENSAGEM CORRIGIDA
         throw err;
     }
 }
@@ -74,4 +91,4 @@ const readFilterChamados = ( filter) => {
     }
 };
 
-export {createChamados, readFilterChamados, readAllChamados, updateChamados, respondChamados};
+export {atribuirChamados, createChamados, readFilterChamados, readAllChamados, updateChamados, respondChamados};

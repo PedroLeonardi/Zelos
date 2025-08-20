@@ -9,5 +9,6 @@ router.post("/getFilter", chamados.readFilterChamadosController)
 router.post("/post", /*auth,*/ chamados.createChamadosContrroler)
 router.put("/put/:id", /*auth,*/ chamados.updateChamadosController)
 router.put("/respond/:id", /*auth,*/ chamados.respondChamadosController)
+router.put("/atribuir/:id", /*auth,*/ chamados.atribuirChamadosController)
 
 export default router
