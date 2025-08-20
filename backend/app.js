@@ -58,6 +58,8 @@ app.use('/relatorio', relatorio)
 
 app.use("/apontamentos", apontamentos)
 
+
+//a rota relatorio ta fucionando toda
 app.use('/user', user) 
 
 app.get('/health', (req, res) => {

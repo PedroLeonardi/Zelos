@@ -58,6 +58,36 @@ const updateChamadosController = async (req, res) => {
 }
 
 
+const updateChamadosControllerJson = async (req, res) => {
+    try {
+        const chamadoData = req.body;
+
+        // Validação: Garante que o ID foi enviado no corpo da requisição.
+        if (!chamadoData || !chamadoData.id) {
+            return res.status(400).json({ mensagem: "O 'id' do chamado é obrigatório no corpo da requisição." });
+        }
+
+        const chamadoExistente = await readFilterChamados({ key: "id", value: chamadoData.id });
+
+        if (chamadoExistente.length === 0) {
+            return res.status(404).json({ mensagem: "Chamado não encontrado." });
+        }
+        
+        await updateChamados(chamadoData);
+        
+        return res.status(200).json({ mensagem: "Chamado atualizado com sucesso" });
+
+    } catch (err) {
+        console.error("Erro no controller ao atualizar chamado: ", err);
+        return res.status(500).json({ mensagem: "Erro interno ao atualizar o chamado." });
+    }
+};
+
+
+
+
+
+
 const readFilterChamadosController = async (req, res) => {
     try {
         return res.status(200).json(await readFilterChamados(req.body))
@@ -119,4 +149,25 @@ const respondChamadosController = async (req, res) => {
         throw err
     }
 }
-export default { atribuirChamadosController, createChamadosContrroler, readFilterChamadosController, readAllChamadosController, updateChamadosController, respondChamadosController }
+
+// const readFilterChamadosController = async (req, res) => {
+//     try {
+//         return res.status(200).json(await readFilterChamados(req.body))
+//     } catch (err) {
+//         console.error("Erro ao Ler meus Chamdos: ", err)
+//         return res.status(400).json({ mensagem: "Erro ao ler meus chamados" })
+//     }
+
+// };
+// const readAllChamadosController = async (req, res) => {
+//     try {
+
+//         return res.status(200).json(await readAllChamados())
+//     } catch (err) {
+//         console.error("Erro ao Ler meus Chamdos: ", err)
+//         return res.status(400).json({ mensagem: "Erro ao ler meus chamados" })
+//     }
+// };
+
+export default{createChamadosContrroler, atribuirChamadosController, readFilterChamadosController, readAllChamadosController, updateChamadosController, respondChamadosController,updateChamadosControllerJson}
+
