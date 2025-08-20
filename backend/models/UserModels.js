@@ -82,6 +82,7 @@ const updateUser = async (data) => {
     } catch (err) {
         console.log("Erro na camada de serviço ao atualizar o usuário: ", err);
         // Lança o erro para que o controller possa capturá-lo e enviar uma resposta adequada
+
         throw err;
     }
 };
@@ -104,10 +105,10 @@ const updateUser = async (data) => {
 //     }
 // }
 
-const changeFuncao = async (data, id) => {
+const changeStatus = async (data, id) => {
     try {
 
-        update("usuarios", {funcao: data.funcao} ,id)
+        update("usuarios", {status: data.status} , `id = '${id}'`)
         return ("Usuario atualizado com sucesso")
     } catch (err){
         console.log("Erro ao atualizar usuarios")
@@ -118,4 +119,4 @@ const changeFuncao = async (data, id) => {
 
 
 
-export {readAllUser, readUser, readUserEmail,   createUser, updateUser, changeFuncao}
+export {readAllUser, readUser, readUserEmail,   createUser, updateUser, changeStatus}

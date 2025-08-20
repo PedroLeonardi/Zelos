@@ -1,4 +1,4 @@
-import {readAllUser, readUser, readUserEmail,   createUser, updateUser, changeFuncao} from "../models/UserModels.js"
+import {readAllUser, readUser, readUserEmail,   createUser, updateUser, changeStatus} from "../models/UserModels.js"
 
 
 // const createUserContrroler = async (req, res) => {
@@ -37,9 +37,18 @@ const updateUserController = async (req, res) => {
     try {
         const userData = req.body;
 
-        // Validação: Garante que o id_login foi enviado no corpo da requisição
-        if (!userData || !userData.id_login) {
-            return res.status(400).json({ mensagem: "Erro ao atualizar: o 'id_login' é obrigatório no corpo da requisição." });
+
+        if (data.length != 0 || !userData || !userData.id_login ){
+            try{
+                console.log("RESPOSTA", req.body)
+                await updateUser (req.body, req.params.id)
+                return res.status(200).json({mensagem: "Usuario atualizado com sucesso"})
+            } catch (err) {
+                console.error("Erro ao atualizar um Usuario: ", err)
+                return res.status(400).json({mensagem: "Erro ao atualizar um Usuario"})
+            }
+        } else {
+            return res.status(400).json({mensagem: "Erro ao atualizar um Usuario, usuario não encontrado"})
         }
 
         // Chama a função de serviço para realizar a atualização
@@ -54,14 +63,14 @@ const updateUserController = async (req, res) => {
     }
 };
 
-const changeFuncaoUserController = async (req, res) => {
+const changeStatusUserController = async (req, res) => {
     try { 
         const data = await readUser(req.params.id)
 
         if (data.length != 0 ){
             try{
-                // console.log(req.body, req.params.id )
-                await changeFuncao (req.body, req.params.id )
+                console.log(req.body, "--------------",req.params.id )
+                await changeStatus (req.body, req.params.id )
                 return res.status(200).json({mensagem: "funcao Usuario atualizado com sucesso ---"})
             } catch (err) {
                 console.error("Erro ao atualizar um Usuario: ", err)
@@ -89,11 +98,11 @@ const readFilterUserController = async (req,res) =>{
 const readAllUserController = async (req,res) =>{
     try {
         
-        return res.status(200).json({mensagem:await readAllUser()})
+        return res.status(200).json(await readAllUser())
     } catch (err) {
         console.error("Erro ao Ler meus Chamdos: ", err)
         return res.status(400).json({mensagem:"Erro ao ler meus Usuarios"})
     }
 };
 
-export default{changeFuncaoUserController, readFilterUserController, readAllUserController, updateUserController}
+export default{changeStatusUserController, readFilterUserController, readAllUserController, updateUserController}

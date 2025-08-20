@@ -3,6 +3,7 @@ import {createServicos, readFilterServicos, readAllServicos, updateServicos} fro
 
 const createServicosContrroler = async (req, res) => {
     try {
+        console.log(req.body)
         await createServicos( req.body);
         return res.status(201).json({mensagem:"Chamado criado com sucesso"});
     } catch (err) {

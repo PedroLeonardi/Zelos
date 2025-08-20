@@ -13,4 +13,5 @@ router.put("/put/:id",  chamados.updateChamadosController)
 router.put("/put",  chamados.updateChamadosControllerJson)
 router.put("/respond/:id", auth, chamados.respondChamadosController)
 
+
 export default router

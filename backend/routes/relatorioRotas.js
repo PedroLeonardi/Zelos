@@ -5,9 +5,11 @@ import auth from "../middlewares/authMiddleware.js"
 const router = express.Router();
 // auth,
 
-router.get("/get",  user.readAllRelatorioController)
-router.post("/getFilter",auth ,user.readFilterRelatorioController)
-router.post("/getFilterBetween",auth, user.readFilterBetweenRelatorioController)
+
+
+router.get("/get", /*auth,*/  user.readAllRelatorioController)
+router.post("/getFilter", /*auth , */ user.readFilterRelatorioController)
+router.post("/getFilterBetween", /*auth,*/ user.readFilterBetweenRelatorioController)
 
 
 
