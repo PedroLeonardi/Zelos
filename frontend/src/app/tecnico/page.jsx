@@ -1,146 +1,215 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import styles from './tecnico.module.css';
-import Header from '../components/Header'; // <-- HEADER IMPORTADO AQUI
+import Header from '../components/Header'; // <-- Lembre-se de ter este componente
 
-// --- ÍCONES SVG (Para não usar bibliotecas externas) ---
-const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"/></svg>;
+// --- ÍCONES SVG ---
+const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="currentColor" width="18" height="18"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"/></svg>;
 
-// --- DADOS INICIAIS E CONFIGURAÇÕES ---
-// Dados MOCK reestruturados conforme a tabela do banco de dados
-const initialChamados = [
-    { id: 1, titulo: 'Reparo Impressora 3D', descricao: 'A impressora parou no meio da impressão e está exibindo um erro de aquecimento.', patrimonio_id: 101, servicos_id: 1, tecnico_id: null, usuario_id: 4, status: 'pendente', criado_em: '2025-08-17T10:00:00Z' },
-    { id: 2, titulo: 'Instalar Software CAD', descricao: 'Instalar a nova versão do AutoCAD no computador do designer.', patrimonio_id: null, servicos_id: 3, tecnico_id: null, usuario_id: 4, status: 'pendente', criado_em: '2025-08-17T09:30:00Z' },
-    { id: 3, titulo: 'Verificar Ponto de Rede', descricao: 'Ponto de rede não funciona no Bloco C.', patrimonio_id: null, servicos_id: 3, tecnico_id: null, usuario_id: 6, status: 'pendente', criado_em: '2025-08-17T11:00:00Z' },
-    { id: 4, titulo: 'Manutenção Torno CNC', descricao: 'Manutenção preventiva agendada.', patrimonio_id: 105, servicos_id: 2, tecnico_id: 2, usuario_id: 6, status: 'em andamento', criado_em: '2025-08-16T14:00:00Z' },
-    { id: 5, titulo: 'Projetor não liga', descricao: 'Projetor do auditório principal não liga.', patrimonio_id: 102, servicos_id: 1, tecnico_id: 1, usuario_id: 4, status: 'em andamento', criado_em: '2025-08-16T15:20:00Z' },
-    { id: 6, titulo: 'Troca de Lâmpadas', descricao: 'Trocar lâmpadas da sala 1.', patrimonio_id: null, servicos_id: 2, tecnico_id: 2, usuario_id: 6, status: 'concluído', criado_em: '2025-08-15T08:00:00Z' },
-    { id: 7, titulo: 'Formatar PC', descricao: 'Reinstalar sistema operacional no PC da recepção.', patrimonio_id: 104, servicos_id: 3, tecnico_id: 1, usuario_id: 4, status: 'concluído', criado_em: '2025-08-14T13:00:00Z' },
-    // Adicione mais chamados de teste para ver a paginação funcionando
-    { id: 8, titulo: 'Limpeza de servidor', descricao: 'Remoção de poeira e verificação de hardware.', patrimonio_id: 201, servicos_id: 2, tecnico_id: 1, usuario_id: 5, status: 'em andamento', criado_em: '2025-08-18T10:00:00Z' },
-    { id: 9, titulo: 'Ajuste de rede', descricao: 'Cabo de rede solto na sala 3.', patrimonio_id: null, servicos_id: 3, tecnico_id: 1, usuario_id: 5, status: 'em andamento', criado_em: '2025-08-18T11:00:00Z' },
-    { id: 10, titulo: 'Computador lento', descricao: 'Computador do setor financeiro muito lento.', patrimonio_id: 106, servicos_id: 1, tecnico_id: 1, usuario_id: 5, status: 'em andamento', criado_em: '2025-08-18T12:00:00Z' },
-    { id: 11, titulo: 'Problema com software de ponto', descricao: 'Software de ponto não inicializa.', patrimonio_id: 107, servicos_id: 1, tecnico_id: null, usuario_id: 5, status: 'pendente', criado_em: '2025-08-18T13:00:00Z' },
-    { id: 12, titulo: 'Troca de mouse', descricao: 'Mouse da sala 5 quebrou.', patrimonio_id: null, servicos_id: 1, tecnico_id: 1, usuario_id: 5, status: 'concluído', criado_em: '2025-08-18T14:00:00Z' },
-    { id: 13, titulo: 'Verificar webcam', descricao: 'Webcam não funciona na sala de reunião.', patrimonio_id: null, servicos_id: 3, tecnico_id: null, usuario_id: 5, status: 'pendente', criado_em: '2025-08-18T15:00:00Z' },
-];
-
-// Mapeamento de IDs para nomes (simulando dados de outras tabelas)
+// --- DADOS E CONFIGURAÇÕES ---
+// Mapeamentos estáticos. Idealmente, viriam de uma API no futuro.
 const initialServicos = { 1: 'Manutenção Corretiva', 2: 'Manutenção Preventiva', 3: 'Instalação/Configuração' };
 const initialUsuarios = { 1: 'Carlos Souza', 2: 'Ana Pereira', 4: 'João Silva', 5: 'Fernanda Martins', 6: 'Roberto Alves' };
-const initialPatrimonio = { 101: 'Impressora 3D', 102: 'Projetor', 104: 'PC Recepção', 105: 'Torno CNC', 106: 'PC Financeiro', 107: 'PC Ponto', 201: 'Servidor Principal' };
+const initialPatrimonio = { 1: 'Computador do Setor X', 2: 'Patrimônio Y', 3: 'Projetor da Sala de Reunião', 101: 'Impressora 3D', 102: 'Projetor', 104: 'PC Recepção' };
 
-// O técnico logado. A ID aqui será usada para filtrar os chamados.
-const LOGGED_IN_TECNICO = { id: 1, nome: 'Carlos Souza' };
+// ID e nome do técnico que está usando o sistema
+const LOGGED_IN_TECNICO = { id: 1, nome: 'Carlos Souza' }; 
 
-// Mapeamento de status para nomes e cores
+// Configurações visuais para cada status de chamado
 const STATUS_CONFIG = {
   'pendente': { title: 'Pendente', color: '#3b82f6' },
   'em andamento': { title: 'Em Andamento', color: '#f97316' },
-  'aguardando aprovação': { title: 'Aguardando Aprovação', color: '#f97316' },
+  // ============================================================================
+  // --- BANNER: COLUNA 'AGUARDANDO APROVAÇÃO' DESATIVADA TEMPORARIAMENTE ---
+  // ============================================================================
+  // 'aguardando aprovação': { title: 'Aguardando Aprovação', color: '#f97316' },
   'concluído': { title: 'Concluído', color: '#16a34a' },
 };
 
 // --- COMPONENTES INTERNOS ---
-
 const TicketCard = ({ ticket, onOpenModal, onAtribuir, onIniciar }) => {
-  const isPending = ticket.status === 'pendente';
-  const isOwner = ticket.tecnico_id === LOGGED_IN_TECNICO.id;
-
-  return (
-    <article className={styles.ticketCard} tabIndex={0}>
-      <header className={styles.ticketCard__header}>
-        <span className={styles.ticketCard__id}>#{ticket.id}</span>
-        <span className={styles.statusBadge} style={{'--status-color': STATUS_CONFIG[ticket.status]?.color}}>{STATUS_CONFIG[ticket.status]?.title}</span>
-      </header>
-      <h3 className={styles.ticketCard__title}>{ticket.titulo}</h3>
-      <p className={styles.ticketCard__info}><strong>Serviço:</strong> {initialServicos[ticket.servicos_id]}</p>
-      <p className={styles.ticketCard__info}><strong>Usuário:</strong> {initialUsuarios[ticket.usuario_id]}</p>
-      <p className={styles.ticketCard__info}><strong>Patrimônio:</strong> {initialPatrimonio[ticket.patrimonio_id] || 'N/A'}</p>
-
-      <footer className={styles.ticketCard__actions}>
-        {isPending && !isOwner && (
-          <button className={`${styles.button} ${styles['button--primary']}`} onClick={() => onAtribuir(ticket.id)}>
-            Atribuir a Mim
+    const isPending = ticket.status === 'pendente';
+    const isOwner = ticket.tecnico_id === LOGGED_IN_TECNICO.id;
+  
+    return (
+      <article className={styles.ticketCard} tabIndex={0}>
+        <header className={styles.ticketCard__header}>
+          <span className={styles.ticketCard__id}>#{ticket.id}</span>
+          <span className={styles.statusBadge} style={{'--status-color': STATUS_CONFIG[ticket.status]?.color}}>{STATUS_CONFIG[ticket.status]?.title}</span>
+        </header>
+        <h3 className={styles.ticketCard__title}>{ticket.titulo}</h3>
+        <p className={styles.ticketCard__info}><strong>Serviço:</strong> {initialServicos[ticket.servicos_id]}</p>
+        <p className={styles.ticketCard__info}><strong>Usuário:</strong> {initialUsuarios[ticket.usuario_id]}</p>
+        <p className={styles.ticketCard__info}><strong>Patrimônio:</strong> {initialPatrimonio[ticket.patrimonio_id] || 'N/A'}</p>
+  
+        <footer className={styles.ticketCard__actions}>
+          {isPending && !isOwner && (
+            <button className={`${styles.button} ${styles['button--primary']}`} onClick={() => onAtribuir(ticket.id)}>
+              Atribuir a Mim
+            </button>
+          )}
+          {isPending && isOwner && (
+             <button className={`${styles.button} ${styles['button--action']}`} onClick={() => onIniciar(ticket.id)}>
+               Iniciar Atendimento
+             </button>
+          )}
+          <button className={`${styles.button} ${styles['button--secondary']}`} onClick={() => onOpenModal(ticket)}>
+            Detalhes
           </button>
-        )}
-        {isPending && isOwner && (
-           <button className={`${styles.button} ${styles['button--action']}`} onClick={() => onIniciar(ticket.id)}>
-             Iniciar Atendimento
-           </button>
-        )}
-        <button className={`${styles.button} ${styles['button--secondary']}`} onClick={() => onOpenModal(ticket)}>
-          Detalhes
-        </button>
-      </footer>
-    </article>
-  );
+        </footer>
+      </article>
+    );
 };
+  
+const ModalContent = ({ ticket, handleFinalizarChamado, handleCreateApontamento, apontamentoForm, handleApontamentoChange, apontamentos }) => {
+    if (!ticket) return null;
+  
+    const isOwner = ticket.tecnico_id === LOGGED_IN_TECNICO.id;
+    const isInProgress = ticket.status === 'em andamento';
 
-const ModalContent = ({ ticket, handleFinalizarChamado, handleSaveRelatorioParcial, relatorioForm, handleRelatorioChange }) => {
-  if (!ticket) return null;
+    // Helper para formatar a data e hora para exibição
+    const formatDateTime = (isoString) => {
+        if (!isoString) return 'N/A';
+        const date = new Date(isoString);
+        return date.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
 
-  const isOwner = ticket.tecnico_id === LOGGED_IN_TECNICO.id;
-  const isFinished = ticket.status === 'concluído';
-  const isInProgress = ticket.status === 'em andamento';
+    // Helper para formatar a duração em segundos para um formato legível (ex: 1h 30m)
+    const formatDuration = (seconds) => {
+        if (seconds === null || isNaN(seconds) || seconds < 0) return '';
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+        return [
+            h > 0 ? `${h}h` : '',
+            m > 0 ? `${m}m` : '',
+            s > 0 ? `${s}s` : ''
+        ].filter(Boolean).join(' ').trim();
+    }
+  
+    if (isOwner && isInProgress) {
+      return (
+        <>
+          {/* Seção para listar os apontamentos já existentes */}
+          <div className={styles.apontamentosList}>
+            <h4>Histórico de Apontamentos</h4>
+            {apontamentos.length > 0 ? (
+              <ul>
+                {apontamentos.map(ap => (
+                  <li key={ap.id}>
+                    <div className={styles.apontamentoHeader}>
+                        <strong>{formatDateTime(ap.comeco)} - {formatDateTime(ap.fim)}</strong>
+                        <span className={styles.durationBadge}>{formatDuration(ap.duracao)}</span>
+                    </div>
+                    <p>{ap.descricao}</p>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className={styles.modalNotice}>Nenhum apontamento registrado para este chamado.</p>
+            )}
+          </div>
 
-  if (isFinished) {
+          <hr className={styles.modalSeparator}/>
+
+          {/* Formulário para adicionar novo apontamento e finalizar o chamado */}
+          <form onSubmit={(e) => handleFinalizarChamado(e, ticket.id)} className={styles.reportForm}>
+            <h4>Registrar Novo Trabalho / Finalizar</h4>
+            
+            <div className={styles.formGroup}>
+              <label htmlFor="descricao">Descrição do Serviço Realizado</label>
+              <textarea name="descricao" value={apontamentoForm.descricao} onChange={handleApontamentoChange} required rows={4} placeholder="Descreva a atividade executada..."/>
+            </div>
+
+            <div className={styles.formGrid}>
+                <div className={styles.formGroup}>
+                    <label htmlFor="comeco">Início do Trabalho</label>
+                    <input type="datetime-local" name="comeco" value={apontamentoForm.comeco} onChange={handleApontamentoChange} required />
+                </div>
+                <div className={styles.formGroup}>
+                    <label htmlFor="fim">Fim do Trabalho</label>
+                    <input type="datetime-local" name="fim" value={apontamentoForm.fim} onChange={handleApontamentoChange} required />
+                </div>
+            </div>
+
+            <div className={styles.reportButtons}>
+                <button type="button" className={`${styles.button} ${styles['button--secondary']}`} onClick={() => handleCreateApontamento(ticket.id)}>
+                    Adicionar Apontamento
+                </button>
+                <button type="submit" className={`${styles.button} ${styles['button--primary']}`}>
+                    Finalizar Chamado
+                </button>
+            </div>
+            <p className={styles.reportNotice}>Para finalizar, a descrição acima será usada como relatório final.</p>
+          </form>
+        </>
+      );
+    }
+    
+    // Conteúdo exibido para chamados que não estão "em andamento"
     return (
       <section className={styles.reportDetails}>
-        <h4>Relatório de Atendimento</h4>
-        <p><strong>Descrição:</strong> {ticket.relatorio?.descricao || 'N/A'}</p>
+        <h4>Relatório Final</h4>
+        <p><strong>Descrição:</strong> {ticket.relatorio?.descricao || 'Nenhum relatório final preenchido.'}</p>
+        <p className={styles.modalNotice}>
+          <em>Este chamado está <strong>{ticket.status}</strong> e não pode mais receber apontamentos.</em>
+        </p>
       </section>
     );
-  }
-
-  if (isOwner && isInProgress) {
-    return (
-      <form onSubmit={handleFinalizarChamado} className={styles.reportForm}>
-        <h4>Preencher Relatório</h4>
-        <p className={styles.reportNotice}>Você pode salvar um rascunho e finalizar depois.</p>
-        <div className={styles.formGroup}>
-          <label htmlFor="descricao">Descrição do Atendimento</label>
-          <textarea id="descricao" value={relatorioForm.descricao} onChange={handleRelatorioChange} required rows={5} placeholder="Descreva em detalhes o serviço executado..."/>
-        </div>
-        <div className={styles.reportButtons}>
-            <button type="button" className={`${styles.button} ${styles['button--secondary']}`} onClick={handleSaveRelatorioParcial}>
-                Salvar Rascunho
-            </button>
-            <button type="submit" className={`${styles.button} ${styles['button--primary']}`}>
-                Finalizar Chamado
-            </button>
-        </div>
-      </form>
-    );
-  }
-
-  return (
-    <p className={styles.modalNotice}>
-      <em>
-        Este chamado não está atribuído a você ou não está em andamento.
-      </em>
-    </p>
-  );
 };
-
 
 // --- PÁGINA PRINCIPAL ---
 export default function TecnicoDashboard() {
-  const [chamados, setChamados] = useState(initialChamados);
+  const [chamados, setChamados] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
-  const [relatorioForm, setRelatorioForm] = useState({ descricao: '' });
   const [toasters, setToasters] = useState([]);
-
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [sortBy, setSortBy] = useState('recentes');
-  
-  // Estados para controlar a paginação
   const [pendenteLimit, setPendenteLimit] = useState(5);
   const [emAndamentoLimit, setEmAndamentoLimit] = useState(5);
   const [concluidoLimit, setConcluidoLimit] = useState(5);
+
+  // Estados específicos para a gestão de apontamentos no modal
+  const [apontamentos, setApontamentos] = useState([]);
+  const [apontamentoForm, setApontamentoForm] = useState({
+      descricao: '',
+      comeco: '',
+      fim: ''
+  });
+
+  useEffect(() => {
+    const fetchChamados = async () => {
+      setIsLoading(true);
+      const postRequest = (body) => fetch('http://localhost:8080/chamados/getFilter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+      }).then(res => {
+          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+          return res.json();
+      });
+
+      try {
+        const [pendentes, meusChamados] = await Promise.all([
+          postRequest({ key: "status", value: "pendente" }),
+          postRequest({ key: "tecnico_id", value: String(LOGGED_IN_TECNICO.id) })
+        ]);
+        const allChamados = [...pendentes, ...meusChamados];
+        const uniqueChamados = Array.from(new Map(allChamados.map(c => [c.id, c])).values());
+        setChamados(uniqueChamados);
+      } catch (error) {
+        console.error("Erro ao buscar chamados:", error);
+        addToaster('Não foi possível carregar os chamados.', 'error');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchChamados();
+  }, []);
 
   const addToaster = (message, type = 'success') => {
     const id = Date.now();
@@ -148,105 +217,173 @@ export default function TecnicoDashboard() {
     setTimeout(() => setToasters(prev => prev.filter(t => t.id !== id)), 4000);
   };
 
-  const handleSortChange = (e) => {
-    const newSortBy = e.target.value;
-    setSortBy(newSortBy);
-    const sortLabel = newSortBy === 'status' ? 'Status' : 'Mais Recentes';
-    addToaster(`Chamados ordenados por: ${sortLabel}`, 'info');
+  const handleSortChange = (e) => setSortBy(e.target.value);
+
+  const updateChamadoStatus = async (ticketId, newStatus, extraData = {}) => {
+    try {
+        const response = await fetch(`http://localhost:8080/chamados/respond/${LOGGED_IN_TECNICO.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chamado_id: ticketId, status: newStatus, ...extraData }),
+        });
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.message || `Erro do servidor: ${response.status}`);
+        }
+        return true;
+    } catch (error) {
+        console.error(`Erro ao atualizar status do chamado #${ticketId}:`, error);
+        addToaster(error.message || 'Falha na comunicação com o servidor.', 'error');
+        return false;
+    }
   };
 
-  const handleSelfAssign = (ticketId) => {
-    setChamados(prev =>
-      prev.map(t =>
-        t.id === ticketId ? { ...t, tecnico_id: LOGGED_IN_TECNICO.id, status: 'em andamento' } : t
-      )
-    );
-    addToaster(`Chamado #${ticketId} atribuído e iniciado com sucesso!`, 'success');
+  const handleSelfAssign = async (ticketId) => {
+    try {
+      const assignResponse = await fetch(`http://localhost:8080/chamados/atribuir/${LOGGED_IN_TECNICO.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chamado_id: ticketId }),
+      });
+      if (!assignResponse.ok) {
+        const errorData = await assignResponse.json().catch(() => ({ message: 'Falha ao atribuir o chamado.' }));
+        throw new Error(errorData.message);
+      }
+      const statusUpdateSuccessful = await updateChamadoStatus(ticketId, 'em andamento');
+      if (statusUpdateSuccessful) {
+        setChamados(prev => prev.map(t => t.id === ticketId ? { ...t, tecnico_id: LOGGED_IN_TECNICO.id, status: 'em andamento' } : t));
+        addToaster(`Chamado #${ticketId} atribuído e iniciado!`, 'success');
+      } else {
+        throw new Error('Chamado atribuído, mas falha ao iniciar o atendimento.');
+      }
+    } catch (error) {
+      console.error("Erro no processo de auto-atribuição:", error);
+      addToaster(error.message, 'error');
+    }
   };
   
-  const handleStartProgress = (ticketId) => {
-    setChamados(prev =>
-      prev.map(t =>
-        t.id === ticketId ? { ...t, status: 'em andamento' } : t
-      )
-    );
-    addToaster(`Chamado #${ticketId} iniciado com sucesso!`, 'info');
+  const handleStartProgress = async (ticketId) => {
+    const success = await updateChamadoStatus(ticketId, 'em andamento');
+    if (success) {
+        setChamados(prev => prev.map(t => t.id === ticketId ? { ...t, status: 'em andamento' } : t));
+        addToaster(`Chamado #${ticketId} iniciado com sucesso!`, 'info');
+    }
   };
 
-  const handleFinalizarChamado = (e) => {
+  const fetchApontamentos = async (ticketId) => {
+    try {
+        const response = await fetch('http://localhost:8080/apontamentos/getFilter', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: "chamado_id", value: String(ticketId) }),
+        });
+        if (!response.ok) throw new Error('Falha ao buscar apontamentos.');
+        const data = await response.json();
+        setApontamentos(data);
+    } catch (error) {
+        console.error("Erro ao buscar apontamentos:", error);
+        addToaster(error.message, 'error');
+    }
+  };
+
+  const handleCreateApontamento = async (ticketId) => {
+    const { descricao, comeco, fim } = apontamentoForm;
+    if (!descricao.trim() || !comeco || !fim) {
+        addToaster('Preencha descrição, início e fim para criar um apontamento.', 'error');
+        return;
+    }
+    if (new Date(fim) <= new Date(comeco)) {
+        addToaster('A data de fim deve ser posterior à data de início.', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch('http://localhost:8080/apontamentos/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chamado_id: ticketId, tecnico_id: LOGGED_IN_TECNICO.id, descricao, comeco, fim }),
+        });
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.mensagem || 'Falha ao criar apontamento.');
+        }
+        
+        addToaster('Apontamento adicionado com sucesso!', 'success');
+        setApontamentoForm({ descricao: '', comeco: '', fim: '' });
+        fetchApontamentos(ticketId); // Re-busca os apontamentos para atualizar a lista
+    } catch (error) {
+        console.error("Erro ao criar apontamento:", error);
+        addToaster(error.message, 'error');
+    }
+  };
+
+  const handleApontamentoChange = (e) => {
+    const { name, value } = e.target;
+    setApontamentoForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleFinalizarChamado = async (e, ticketId) => {
     e.preventDefault();
-    const { descricao } = relatorioForm;
-    if (!descricao.trim()) {
-      addToaster('Preencha a descrição do relatório.', 'error');
+    if (!apontamentoForm.descricao.trim()) {
+      addToaster('A descrição é obrigatória para finalizar o chamado.', 'error');
       return;
     }
 
-    setChamados(prev =>
-      prev.map(t =>
-        t.id === selectedTicket.id ? { ...t, status: 'concluído', relatorio: { descricao } } : t
-      )
-    );
-    addToaster(`Chamado #${selectedTicket.id} finalizado com sucesso!`, 'success');
-    handleCloseModal();
-  };
+    const relatorioData = { relatorio: { descricao: apontamentoForm.descricao } };
+    const success = await updateChamadoStatus(ticketId, 'concluído', relatorioData);
 
-  const handleSaveRelatorioParcial = () => {
-      if (!selectedTicket || !relatorioForm.descricao.trim()) {
-          addToaster('A descrição do relatório não pode estar vazia.', 'error');
-          return;
-      }
-      setChamados(prev =>
-          prev.map(t =>
-              t.id === selectedTicket.id ? { ...t, relatorio: relatorioForm } : t
-          )
-      );
-      addToaster(`Rascunho do chamado #${selectedTicket.id} salvo com sucesso!`, 'success');
-      handleCloseModal();
+    if (success) {
+        setChamados(prev => prev.map(t => t.id === ticketId ? { ...t, status: 'concluído', ...relatorioData } : t));
+        addToaster(`Chamado #${ticketId} finalizado!`, 'success');
+        handleCloseModal();
+    }
   };
 
   const handleOpenModal = (ticket) => {
     setSelectedTicket(ticket);
-    setRelatorioForm(ticket.relatorio || { descricao: '' });
+    // Busca os apontamentos apenas para chamados que podem recebê-los
+    if (ticket.status === 'em andamento') {
+        fetchApontamentos(ticket.id);
+    }
     setModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setModalOpen(false);
+    setApontamentos([]);
+    setApontamentoForm({ descricao: '', comeco: '', fim: '' });
     setTimeout(() => setSelectedTicket(null), 300);
-  };
-
-  const handleRelatorioChange = (e) => {
-    const { id, value } = e.target;
-    setRelatorioForm(prev => ({ ...prev, [id]: value }));
   };
 
   const filteredAndSortedChamados = useMemo(() => {
     let result = [...chamados];
-    
-    // Filtra para mostrar APENAS os chamados do técnico logado
     result = result.filter(t => t.tecnico_id === LOGGED_IN_TECNICO.id || t.tecnico_id === null);
-
     if (statusFilter !== 'todos') {
       result = result.filter(t => t.status === statusFilter);
     }
     if (searchTerm) {
-      result = result.filter(
-        t =>
-          t.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          t.id.toString().toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      result = result.filter(t => t.titulo.toLowerCase().includes(searchTerm.toLowerCase()) || t.id.toString().toLowerCase().includes(searchTerm.toLowerCase()));
     }
     result.sort((a, b) => {
         if (sortBy === 'status') {
-            const statusOrder = ['em andamento', 'pendente', 'concluído', 'aguardando aprovação'];
+            const statusOrder = ['em andamento', 'pendente', 'concluído' /*, 'aguardando aprovação'*/];
             return statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status);
         }
-        // Ordena por data de criação de forma decrescente (mais recente primeiro)
         return new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime();
     });
     return result;
   }, [chamados, searchTerm, statusFilter, sortBy]);
 
+  if (isLoading) {
+    return (
+      <>
+        <Header />
+        <div className={styles.container}>
+          <div className={styles.loadingState}><h2>Carregando chamados...</h2></div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -262,12 +399,7 @@ export default function TecnicoDashboard() {
         <div className={styles.filtersBar}>
             <div className={styles.searchBox}>
                 <SearchIcon />
-                <input 
-                    type="text" 
-                    placeholder="Buscar por título ou ID..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
+                <input type="text" placeholder="Buscar por título ou ID..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
             <div className={styles.filterGroup}>
                 <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
@@ -288,16 +420,14 @@ export default function TecnicoDashboard() {
           {Object.keys(STATUS_CONFIG).map((statusKey) => {
             const columnTickets = filteredAndSortedChamados.filter((c) => c.status === statusKey);
             const columnConfig = STATUS_CONFIG[statusKey];
-            
-            // Lógica para Paginação
-            let limit;
-            let setLimit;
+            let limit, setLimit;
             if (statusKey === 'pendente') { limit = pendenteLimit; setLimit = setPendenteLimit; }
             else if (statusKey === 'em andamento') { limit = emAndamentoLimit; setLimit = setEmAndamentoLimit; }
             else if (statusKey === 'concluído') { limit = concluidoLimit; setLimit = setConcluidoLimit; }
-            
-            const ticketsToDisplay = columnTickets.slice(0, limit);
-            const hasMoreTickets = columnTickets.length > limit;
+            const ticketsToDisplay = limit ? columnTickets.slice(0, limit) : columnTickets;
+            const hasMoreTickets = limit && columnTickets.length > limit;
+
+            if (statusFilter !== 'todos' && statusFilter !== statusKey) return null;
 
             return (
               <section key={statusKey} className={styles.kanbanColumn} aria-labelledby={`column-title-${statusKey}`}>
@@ -308,10 +438,7 @@ export default function TecnicoDashboard() {
                 <div className={styles.kanbanColumn__ticketsList}>
                   {ticketsToDisplay.length > 0 ? (
                     ticketsToDisplay.map((ticket) => (
-                      <TicketCard 
-                        key={ticket.id} ticket={ticket} 
-                        onOpenModal={handleOpenModal} onAtribuir={handleSelfAssign} onIniciar={handleStartProgress}
-                      />
+                      <TicketCard key={ticket.id} ticket={ticket} onOpenModal={handleOpenModal} onAtribuir={handleSelfAssign} onIniciar={handleStartProgress} />
                     ))
                   ) : (
                     <div className={styles.kanbanColumn__empty}><p>Nenhum chamado aqui.</p></div>
@@ -328,7 +455,6 @@ export default function TecnicoDashboard() {
         </main>
       </div>
 
-      {/* --- MODAL --- */}
       {modalOpen && selectedTicket && (
         <div className={styles.modalOverlay} onClick={handleCloseModal}>
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="modal-title">
@@ -344,23 +470,23 @@ export default function TecnicoDashboard() {
                     <p><strong>Serviço:</strong> {initialServicos[selectedTicket.servicos_id]}</p>
                     <p><strong>Usuário:</strong> {initialUsuarios[selectedTicket.usuario_id]}</p>
                     <p><strong>Patrimônio:</strong> {initialPatrimonio[selectedTicket.patrimonio_id] || 'N/A'}</p>
-                    <p><strong>Descrição:</strong> {selectedTicket.descricao}</p>
+                    <p><strong>Descrição Inicial:</strong> {selectedTicket.descricao}</p>
                     <p><strong>Status:</strong> <span className={styles.statusBadge} style={{'--status-color': STATUS_CONFIG[selectedTicket.status]?.color}}>{STATUS_CONFIG[selectedTicket.status]?.title}</span></p>
                 </div>
               <hr className={styles.modalSeparator}/>
               <ModalContent 
                 ticket={selectedTicket} 
                 handleFinalizarChamado={handleFinalizarChamado} 
-                handleSaveRelatorioParcial={handleSaveRelatorioParcial}
-                relatorioForm={relatorioForm} 
-                handleRelatorioChange={handleRelatorioChange} 
+                handleCreateApontamento={handleCreateApontamento}
+                apontamentoForm={apontamentoForm} 
+                handleApontamentoChange={handleApontamentoChange}
+                apontamentos={apontamentos}
               />
             </main>
           </div>
         </div>
       )}
 
-      {/* --- TOASTER CONTAINER --- */}
       <div className={styles.toasterContainer}>
         {toasters.map(t => (
           <div key={t.id} className={`${styles.toaster} ${styles[`toaster--${t.type}`]}`}>
