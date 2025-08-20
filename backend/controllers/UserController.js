@@ -1,4 +1,4 @@
-import {readAllUser, readUser, readUserEmail,   createUser, updateUser, changeFuncao} from "../models/UserModels.js"
+import {readAllUser, readUser, readUserEmail,   createUser, updateUser, changeStatus} from "../models/UserModels.js"
 
 
 // const createUserContrroler = async (req, res) => {
@@ -18,7 +18,8 @@ const updateUserController = async (req, res) => {
 
         if (data.length != 0 ){
             try{
-                await updateUser (req.body)
+                console.log("RESPOSTA", req.body)
+                await updateUser (req.body, req.params.id)
                 return res.status(200).json({mensagem: "Usuario atualizado com sucesso"})
             } catch (err) {
                 console.error("Erro ao atualizar um Usuario: ", err)
@@ -38,14 +39,14 @@ const updateUserController = async (req, res) => {
 
 }
 
-const changeFuncaoUserController = async (req, res) => {
+const changeStatusUserController = async (req, res) => {
     try { 
         const data = await readUser(req.params.id)
 
         if (data.length != 0 ){
             try{
-                // console.log(req.body, req.params.id )
-                await changeFuncao (req.body, req.params.id )
+                console.log(req.body, "--------------",req.params.id )
+                await changeStatus (req.body, req.params.id )
                 return res.status(200).json({mensagem: "funcao Usuario atualizado com sucesso ---"})
             } catch (err) {
                 console.error("Erro ao atualizar um Usuario: ", err)
@@ -73,11 +74,11 @@ const readFilterUserController = async (req,res) =>{
 const readAllUserController = async (req,res) =>{
     try {
         
-        return res.status(200).json({mensagem:await readAllUser()})
+        return res.status(200).json(await readAllUser())
     } catch (err) {
         console.error("Erro ao Ler meus Chamdos: ", err)
         return res.status(400).json({mensagem:"Erro ao ler meus Usuarios"})
     }
 };
 
-export default{changeFuncaoUserController, readFilterUserController, readAllUserController, updateUserController}
+export default{changeStatusUserController, readFilterUserController, readAllUserController, updateUserController}

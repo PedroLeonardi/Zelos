@@ -28,7 +28,7 @@ const updateServicos = (data) =>{
             titulo: data.titulo,
             descricao: data.descricao,
             updated_by: data.updated_by
-        }, `id = ${data.id}`)
+        }, `id = '${data.id}'`)
     } catch (err) {
         console.error("Erro ao atualizar servicos: ", err)
         throw err

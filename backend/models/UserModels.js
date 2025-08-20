@@ -71,7 +71,7 @@ const updateUser = async (data, id) => {
         funcao: data.funcao
         }
 
-        update("usuarios", conteudo, `id = ${id}`)
+        update("usuarios", conteudo, `id = '${id}'`)
         return ("Usuario atualizado com sucesso")
     } catch (err){
         console.log("Erro ao atualizar usuarios")
@@ -79,10 +79,10 @@ const updateUser = async (data, id) => {
     }
 }
 
-const changeFuncao = async (data, id) => {
+const changeStatus = async (data, id) => {
     try {
 
-        update("usuarios", {funcao: data.funcao} ,id)
+        update("usuarios", {status: data.status} , `id = '${id}'`)
         return ("Usuario atualizado com sucesso")
     } catch (err){
         console.log("Erro ao atualizar usuarios")
@@ -93,4 +93,4 @@ const changeFuncao = async (data, id) => {
 
 
 
-export {readAllUser, readUser, readUserEmail,   createUser, updateUser, changeFuncao}
+export {readAllUser, readUser, readUserEmail,   createUser, updateUser, changeStatus}

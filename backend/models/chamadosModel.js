@@ -11,12 +11,19 @@ const readAllChamados = () => {
 
 const createChamados = ( data) => {
     try {
+        let tecnico_id1
+        if (!data.tecnico_id){
+            tecnico_id1 = null
+        } else {
+            tecnico_id1 = data.tecnico_id
+        }
+
         return create("chamados", {
             titulo: data.titulo,
             descricao: data.descricao,
             patrimonio_id: data.patrimonio_id,
             servicos_id: data.servicos_id,
-            tecnico_id: data.tecnico_id,
+            tecnico_id: tecnico_id1,
             usuario_id: data.usuario_id
         })
 
