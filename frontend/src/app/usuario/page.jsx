@@ -2,15 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 import styles from './usuario.module.css';
-import Header from '../components/Header'; // <-- IMPORTAÇÃO ATIVADA
+import Header from '../components/Header';
 
-// --- ÍCONES ---
+// --- ÍCONES (COM REMOÇÃO) ---
 const PlusIcon = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>;
 const SpinnerIcon = () => <svg className={styles.spinner} viewBox="0 0 50 50"><circle className={styles.spinnerPath} cx="25" cy="25" r="20" fill="none" strokeWidth="5"></circle></svg>;
-const PaperclipIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>;
+// O PaperclipIcon foi removido.
 
-
-// --- CONFIGURAÇÃO CENTRALIZADA (COMO UM MINI DESIGN SYSTEM) ---
+// --- CONFIGURAÇÃO CENTRALIZADA ---
 const STATUS_CONFIG = {
   Resolvido:   { label: 'Resolvido', color: '#16a34a' },
   'Em Análise': { label: 'Em Análise', color: '#f59e0b' },
@@ -25,12 +24,12 @@ const TYPE_CONFIG = {
   externo:        { label: 'Serviço Externo', color: '#ef4444' }
 };
 
-const initialTickets = [
-  { id: '#7798', title: 'Lâmpada queimada na sala 302', status: 'Resolvido', description: 'A lâmpada principal do teto da sala de aula 302, localizada perto da janela, queimou e precisa ser substituída urgentemente para não atrapalhar a aula noturna.', type: 'externo', createdAt: '2025-08-10T10:30:00Z' },
-  { id: '#7815', title: 'Computador não liga no Lab 05', status: 'Em Análise', description: 'O computador da bancada 3, patrimônio #12345, não dá sinal de vídeo ao ser ligado. Já foi testado em outra tomada e com outro cabo de energia.', type: 'manutencao', createdAt: '2025-08-11T09:15:00Z' },
-  { id: '#7820', title: 'Solicitação de software', status: 'Aguardando', description: 'É necessária a instalação do software AutoCAD 2024 em todas as 15 estações de trabalho do Laboratório 07 para a nova turma de Desenho Técnico.', type: 'apoio_tecnico', createdAt: '2025-08-12T14:50:00Z' },
-];
-
+const TYPE_TO_ID_MAP = {
+  manutencao: "1",
+  apoio_tecnico: "2",
+  limpeza: "3",
+  externo: "4"
+};
 
 // --- COMPONENTES INTERNOS ---
 
@@ -49,7 +48,7 @@ const TicketCard = ({ ticket, onViewDetails }) => {
       <div className={styles.ticketHeader}>
         <span className={styles.ticketId}>{ticket.id}</span>
         <span className={styles.ticketTypeBadge} style={{ backgroundColor: typeInfo.color }}>
-          {typeInfo.label}
+          {ticket.serviceTitle}
         </span>
       </div>
       <h3 className={styles.ticketTitle}>{ticket.title}</h3>
@@ -67,19 +66,17 @@ const TicketCard = ({ ticket, onViewDetails }) => {
   );
 };
 
-const TicketModal = ({ modalConfig, onClose, onCreateTicket }) => {
+const TicketModal = ({ modalConfig, onClose, onCreateTicket, isSubmitting }) => {
+  // Estado simplificado sem 'image' e 'imageName'
   const [newTicket, setNewTicket] = useState({ 
     title: '', 
     description: '', 
     type: 'manutencao',
-    patrimony: '', // <-- NOVO ESTADO
-    image: null    // <-- NOVO ESTADO
+    patrimony: '' 
   });
-  const [imageName, setImageName] = useState('');
   const titleInputRef = useRef(null);
 
   useEffect(() => {
-    // Foco automático no input ao abrir modal de criação
     if (modalConfig.type === 'new' && titleInputRef.current) {
       titleInputRef.current.focus();
     }
@@ -89,16 +86,9 @@ const TicketModal = ({ modalConfig, onClose, onCreateTicket }) => {
     e.preventDefault();
     onCreateTicket(newTicket);
   };
-
-  const handleImageChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setNewTicket({ ...newTicket, image: file });
-      setImageName(file.name);
-    }
-  };
   
-  // Tratamento de tecla ESC para fechar modal
+  // A função handleImageChange foi removida.
+  
   useEffect(() => {
     const handleEsc = (event) => {
       if (event.key === 'Escape') onClose();
@@ -120,15 +110,10 @@ const TicketModal = ({ modalConfig, onClose, onCreateTicket }) => {
                 <label htmlFor="title">Título do Chamado</label>
                 <input ref={titleInputRef} id="title" type="text" placeholder="Ex: Projetor do auditório não liga" value={newTicket.title} onChange={(e) => setNewTicket({ ...newTicket, title: e.target.value })} required />
               </div>
-
-              {/* ========================================================== */}
-              {/* =================== CAMPO ADICIONADO =================== */}
               <div className={styles.formGroup}>
                 <label htmlFor="patrimony">Número do Patrimônio (Opcional)</label>
                 <input id="patrimony" type="text" placeholder="Ex: 12345678" value={newTicket.patrimony} onChange={(e) => setNewTicket({ ...newTicket, patrimony: e.target.value })} />
               </div>
-              {/* ========================================================== */}
-
               <div className={styles.formGroup}>
                 <label htmlFor="type">Tipo de Serviço</label>
                 <select id="type" value={newTicket.type} onChange={(e) => setNewTicket({ ...newTicket, type: e.target.value })}>
@@ -141,35 +126,28 @@ const TicketModal = ({ modalConfig, onClose, onCreateTicket }) => {
                 <label htmlFor="description">Descrição do Problema</label>
                 <textarea id="description" rows="5" placeholder="Descreva o problema ou a sua necessidade com o máximo de detalhes." value={newTicket.description} onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })} required />
               </div>
-
-              {/* ========================================================== */}
-              {/* =================== CAMPO ADICIONADO =================== */}
-              <div className={styles.formGroup}>
-                <label htmlFor="image-upload">Anexar Imagem (Opcional)</label>
-                <label className={styles.uploadButton}>
-                  <PaperclipIcon />
-                  <span>{imageName || 'Escolher arquivo'}</span>
-                  <input id="image-upload" type="file" accept="image/*" onChange={handleImageChange} />
-                </label>
-              </div>
-              {/* ========================================================== */}
+              
+              {/* O campo de anexo de imagem foi removido daqui. */}
 
               <div className={styles.modalActions}>
-                <button type="button" className={`${styles.button} ${styles.buttonSecondary}`} onClick={onClose}>Cancelar</button>
-                <button type="submit" className={`${styles.button} ${styles.buttonPrimary}`}>Confirmar Abertura</button>
+                <button type="button" className={`${styles.button} ${styles.buttonSecondary}`} onClick={onClose} disabled={isSubmitting}>Cancelar</button>
+                <button type="submit" className={`${styles.button} ${styles.buttonPrimary}`} disabled={isSubmitting}>
+                  {isSubmitting ? <SpinnerIcon /> : 'Confirmar Abertura'}
+                </button>
               </div>
             </form>
           </>
         ) : (
           <>
-            <div className={styles.modalHeaderDetails}>
+           <div className={styles.modalHeaderDetails}>
                 <h2 className={styles.modalTitle}>{modalConfig.data.title}</h2>
                 <span className={styles.ticketTypeBadge} style={{ backgroundColor: TYPE_CONFIG[modalConfig.data.type]?.color }}>
-                    {TYPE_CONFIG[modalConfig.data.type]?.label}
+                    {modalConfig.data.serviceTitle}
                 </span>
             </div>
             <p className={styles.modalDescription}>{modalConfig.data.description}</p>
             <div className={styles.modalMeta}>
+                <div><strong>Tipo de Serviço:</strong> {modalConfig.data.serviceTitle}</div>
                 <div><strong>Status:</strong> <span className={styles.modalStatus} style={{color: STATUS_CONFIG[modalConfig.data.status]?.color}}>{modalConfig.data.status}</span></div>
                 <div><strong>Chamado ID:</strong> {modalConfig.data.id}</div>
                 <div><strong>Aberto em:</strong> {new Date(modalConfig.data.createdAt).toLocaleString('pt-BR', { dateStyle: 'long', timeStyle: 'short' })}</div>
@@ -195,20 +173,95 @@ const EmptyState = ({ onOpenModal }) => (
     </div>
 );
 
+
 // --- PÁGINA PRINCIPAL ---
 export default function UsuarioDashboard() {
   const [tickets, setTickets] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [modal, setModal] = useState({ isOpen: false, type: null, data: null }); // type: 'new' | 'details'
+  const [modal, setModal] = useState({ isOpen: false, type: null, data: null });
   const [toasters, setToasters] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Simulação de carregamento de dados
-  useEffect(() => {
-    setTimeout(() => {
-      setTickets(initialTickets);
+  // --- FUNÇÕES DE API ---
+
+  const fetchTickets = async () => {
+    const apiUrl = 'http://localhost:8080/chamados/getFilter';
+    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer SEU_TOKEN_JWT_AQUI` };
+    const body = { "key": "usuario_id", "value": "2" };
+    const response = await fetch(apiUrl, { method: "POST", headers, body: JSON.stringify(body) });
+    if (!response.ok) throw new Error('Falha ao buscar os chamados da API');
+    return response.json();
+  };
+
+  const fetchServiceById = async (id) => {
+    const apiUrl = `http://localhost:8080/servico/getFilter/`;
+    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer SEU_TOKEN_JWT_AQUI` };
+    const body = { "key": "id", "value": `${id}` };
+    const response = await fetch(apiUrl, { method: "POST", headers, body: JSON.stringify(body) });
+    if (!response.ok) {
+      console.error(`Falha ao buscar o serviço com ID: ${id}`);
+      return { id: null, titulo: 'Serviço Desconhecido' };
+    }
+    const responseData = await response.json();
+    return responseData[0] || { id: null, titulo: 'Serviço Desconhecido' };
+  };
+
+  const createTicketApi = async (payload) => {
+    const apiUrl = 'http://localhost:8080/chamados/post';
+    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer SEU_TOKEN_JWT_AQUI` };
+    const response = await fetch(apiUrl, { method: 'POST', headers, body: JSON.stringify(payload) });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido na API' }));
+      throw new Error(errorData.mensagem || `Falha ao criar chamado: ${response.statusText}`);
+    }
+    return response.json();
+  };
+  
+  const mapApiStatusToDisplayStatus = (apiStatus) => {
+    const mapping = { 'concluído': 'Resolvido', 'em análise': 'Em Análise', 'aguardando': 'Aguardando', 'pendente': 'Pendente' };
+    return mapping[apiStatus.toLowerCase()] || 'Pendente';
+  };
+
+  const mapServiceTitleToTypeKey = (title) => {
+    for (const [key, config] of Object.entries(TYPE_CONFIG)) {
+      if (config.label === title) return key;
+    }
+    return 'manutencao';
+  };
+
+  const loadTicketData = async () => {
+    setIsLoading(true);
+    try {
+      const apiTickets = await fetchTickets();
+      const enrichedTicketsPromises = apiTickets.map(async (ticket) => {
+        const service = await fetchServiceById(ticket.servicos_id);
+        return {
+          id: `#${ticket.id}`,
+          title: ticket.titulo,
+          description: ticket.descricao,
+          patrimony: ticket.patrimonio_id,
+          status: mapApiStatusToDisplayStatus(ticket.status),
+          type: mapServiceTitleToTypeKey(service.titulo),
+          serviceTitle: service.titulo,
+          createdAt: ticket.criado_em,
+          updatedAt: ticket.atualizado_em,
+        };
+      });
+      const finalTicketsData = await Promise.all(enrichedTicketsPromises);
+      setTickets(finalTicketsData);
+    } catch (error) {
+      console.error("Erro ao carregar dados da API:", error);
+      addToaster("Não foi possível carregar os chamados.", "error");
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
+  };
+
+  useEffect(() => {
+    loadTicketData();
   }, []);
+
+  // --- Funções de manipulação ---
 
   const addToaster = (message, type = 'success') => {
     const id = Date.now();
@@ -224,29 +277,52 @@ export default function UsuarioDashboard() {
     setModal({ isOpen: false, type: null, data: null });
   };
 
-  const handleCreateTicket = (newTicketData) => {
-    console.log("Novo chamado:", newTicketData); // <-- Log para ver os dados, incluindo imagem
-    const createdTicket = {
-      id: `#${Math.floor(1000 + Math.random() * 9000)}`,
-      status: 'Pendente',
-      createdAt: new Date().toISOString(),
-      ...newTicketData
-    };
-    setTickets([createdTicket, ...tickets]);
-    handleCloseModal();
-    addToaster(`Chamado ${createdTicket.id} criado com sucesso!`, 'success');
+  const handleCreateTicket = async (formData) => {
+    setIsSubmitting(true);
+    try {
+      if (formData.patrimony && !/^\d+$/.test(formData.patrimony)) {
+          throw new Error('O número do patrimônio fornecido é inválido. Digite apenas números.');
+      }
+
+      const payload = {
+        titulo: formData.title,
+        descricao: formData.description,
+        patrimonio_id: formData.patrimony || null, 
+        servicos_id: TYPE_TO_ID_MAP[formData.type], 
+        usuario_id: "2"
+      };
+
+      const newTicketFromApi = await createTicketApi(payload);
+
+      addToaster(`Chamado #${newTicketFromApi.id || ''} criado com sucesso!`, 'success');
+      handleCloseModal();
+      await loadTicketData();
+
+    } catch (error) {
+      console.error("Erro ao criar chamado:", error);
+
+      if (error.message && error.message.includes('chamado com numero de patrimonio já aberto')) {
+        addToaster("Já existe um chamado aberto para este número de patrimônio.", "error");
+      } else {
+        addToaster(error.message || "Não foi possível criar o chamado.", "error");
+      }
+      
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
+  // --- RENDERIZAÇÃO DO COMPONENTE ---
   return (
     <>
-      <Header /> {/* <-- HEADER ADICIONADO AQUI */}
+      <Header />
       <div className={styles.container}>
         <TicketModal 
           modalConfig={modal}
           onClose={handleCloseModal}
           onCreateTicket={handleCreateTicket}
+          isSubmitting={isSubmitting}
         />
-        
         <header className={styles.header}>
           <h1 className={styles.pageTitle}>Meus Chamados</h1>
           <button className={`${styles.button} ${styles.buttonPrimary}`} onClick={() => handleOpenModal('new')}>
@@ -254,7 +330,6 @@ export default function UsuarioDashboard() {
             <span>Novo Chamado</span>
           </button>
         </header>
-
         <main>
           {isLoading ? (
             <div className={styles.loadingState}><SpinnerIcon/>Carregando chamados...</div>
@@ -269,7 +344,6 @@ export default function UsuarioDashboard() {
           )}
         </main>
       </div>
-      
       <div className={styles.toasterContainer}>
         {toasters.map(t => (
           <div key={t.id} className={`${styles.toaster} ${styles[`toaster--${t.type}`]}`}>
