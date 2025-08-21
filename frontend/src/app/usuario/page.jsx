@@ -200,22 +200,30 @@ export default function UsuarioDashboard() {
   const [toasters, setToasters] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // ============================================================================
-  // --- BANNER: CORREÇÃO APLICADA ---
-  // A lógica agora FORÇA a definição do ID para '1' toda vez que a página carrega,
-  // garantindo consistência no ambiente de desenvolvimento.
-  // ============================================================================
+  // --- ALTERAÇÃO APLICADA AQUI ---
+  // Agora, a lógica lê o ID do usuário que foi salvo no localStorage
+  // durante o processo de login.
   useEffect(() => {
-    localStorage.setItem('id', "1"); // Força o ID a ser '1'
-    const id = localStorage.getItem('id'); // Lê o ID que acabamos de definir
-    setLoggedInUserId(id); // Armazena o ID no estado do componente
+
+    const id = localStorage.getItem('id');
+    setLoggedInUserId(id);
+
   }, []);
+  // --- FIM DA ALTERAÇÃO ---
 
   const fetchTickets = useCallback(async () => {
     if (!LOGGED_IN_USER_ID) return [];
     
+    // --- ALTERAÇÃO APLICADA AQUI ---
+    // Pega o token do localStorage e o adiciona no cabeçalho da requisição.
+    const token = localStorage.getItem('authToken');
     const apiUrl = 'http://localhost:8080/chamados/getFilter';
-    const headers = { 'Content-Type': 'application/json' };
+    const headers = { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}` 
+    };
+    // --- FIM DA ALTERAÇÃO ---
+    
     const body = { "key": "usuario_id", "value": LOGGED_IN_USER_ID };
     const response = await fetch(apiUrl, { method: "POST", headers, body: JSON.stringify(body) });
     if (!response.ok) throw new Error('Falha ao buscar os chamados da API');
@@ -223,8 +231,15 @@ export default function UsuarioDashboard() {
   }, [LOGGED_IN_USER_ID]);
 
   const fetchServiceById = async (id) => {
+    // --- ALTERAÇÃO APLICADA AQUI ---
+    const token = localStorage.getItem('authToken');
     const apiUrl = `http://localhost:8080/servico/getFilter/`;
-    const headers = { 'Content-Type': 'application/json' };
+    const headers = { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}` 
+    };
+    // --- FIM DA ALTERAÇÃO ---
+
     const body = { "key": "id", "value": `${id}` };
     const response = await fetch(apiUrl, { method: "POST", headers, body: JSON.stringify(body) });
     if (!response.ok) {
@@ -236,8 +251,15 @@ export default function UsuarioDashboard() {
   };
 
   const createTicketApi = async (payload) => {
+    // --- ALTERAÇÃO APLICADA AQUI ---
+    const token = localStorage.getItem('authToken');
     const apiUrl = 'http://localhost:8080/chamados/post';
-    const headers = { 'Content-Type': 'application/json' };
+    const headers = { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+    // --- FIM DA ALTERAÇÃO ---
+
     const response = await fetch(apiUrl, { method: 'POST', headers, body: JSON.stringify(payload) });
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
@@ -259,7 +281,7 @@ export default function UsuarioDashboard() {
   };
 
   const loadTicketData = useCallback(async () => {
-    if (!LOGGED_IN_USER_ID) return; // Guarda de segurança adicional
+    if (!LOGGED_IN_USER_ID) return;
     setIsLoading(true);
     try {
       const apiTickets = await fetchTickets();
