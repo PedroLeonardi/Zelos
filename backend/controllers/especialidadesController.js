@@ -5,7 +5,7 @@ import {
     readAllEspecialidades,
     readFilterEspecialidades,
     deleteEspecialidade
-} from "../models/especialidadesModel.js";
+} from "../models/especialidadesModels.js";
 
 const createEspecialidadeController = async (req, res) => {
     const { id_servicos, id_tecnico } = req.body;
