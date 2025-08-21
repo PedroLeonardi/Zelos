@@ -54,6 +54,22 @@ const updateChamados = (data) => {
     }
 };
 
+const updateChamados2 = (data) => {
+    try {
+        const id = data.id;
+
+        // CORREÇÃO: Aplicado o operador '?? null' a todos os campos que podem ser nulos ou undefined
+        const dadosParaAtualizar = {
+            status: data.status
+        };
+
+        return update("chamados", dadosParaAtualizar, `id = '${id}'`);
+    } catch (err) {
+        console.error("Erro ao atualizar Chamado: ", err);
+        throw err;
+    }
+};
+
 const updateChamadosJson = (data, id) => {
     try {
         // Objeto com os dados a serem atualizados.
@@ -117,4 +133,4 @@ const readFilterChamados = ( filter) => {
     }
 };
 
-export {atribuirChamados, createChamados, readFilterChamados, readAllChamados, updateChamados, respondChamados,updateChamadosJson};
+export {atribuirChamados, createChamados, readFilterChamados, readAllChamados, updateChamados,updateChamados2, respondChamados,updateChamadosJson};

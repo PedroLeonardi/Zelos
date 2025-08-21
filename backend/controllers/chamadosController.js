@@ -1,4 +1,4 @@
-import { createChamados, readFilterChamados, readAllChamados, updateChamados, respondChamados, atribuirChamados } from "../models/chamadosModel.js"
+import { createChamados, readFilterChamados, readAllChamados, updateChamados, updateChamados2, respondChamados, atribuirChamados } from "../models/chamadosModel.js"
 
 const createChamadosContrroler = async (req, res) => {
     try {
@@ -61,7 +61,7 @@ const updateChamadosController = async (req, res) => {
 const updateChamadosControllerJson = async (req, res) => {
     try {
         const chamadoData = req.body;
-
+        console.log(chamadoData)
         // Validação: Garante que o ID foi enviado no corpo da requisição.
         if (!chamadoData || !chamadoData.id) {
             return res.status(400).json({ mensagem: "O 'id' do chamado é obrigatório no corpo da requisição." });
@@ -73,7 +73,7 @@ const updateChamadosControllerJson = async (req, res) => {
             return res.status(404).json({ mensagem: "Chamado não encontrado." });
         }
         
-        await updateChamados(chamadoData);
+        await updateChamados2(chamadoData);
         
         return res.status(200).json({ mensagem: "Chamado atualizado com sucesso" });
 

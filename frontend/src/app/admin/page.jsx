@@ -4,18 +4,15 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
 import { FiPlus, FiSearch, FiEdit, FiTrash2, FiChevronUp, FiChevronDown, FiX, FiUsers, FiClipboard, FiBarChart2, FiAlertTriangle } from 'react-icons/fi';
 import styles from './admin.module.css';
-import Header from '../components/Header'; // Mantém o Header como um componente externo
+import Header from '../components/Header';
 
 // --- DADOS GLOBAIS ---
-
-// MODIFICADO: Lista de serviços atualizada para corresponder ao seu banco de dados
 const servicosDisponiveis = [
     { id: 1, nome: 'Manutenção' },
     { id: 2, nome: 'Apoio Técnico' },
     { id: 3, nome: 'Limpeza' },
     { id: 4, nome: 'Externo' },
 ];
-
 const STATUS_OPCOES = ['pendente', 'em andamento', 'aguardando aprovação', 'concluído', 'inativo'];
 const ITEMS_PER_PAGE = 5;
 const FUNCOES = ['Administrador', 'Técnico', 'Usuário'];
@@ -171,9 +168,7 @@ const ChamadoTable = ({
             <span>Ações</span>
         </div>
         {paginatedChamados.map(c => {
-            const statusClassName = c.status
-                .replace(/\s+/g, '')
-                .replace('çã', 'ca');
+            const statusClassName = c.status.replace(/\s+/g, '').replace('çã', 'ca');
 
             return (
                 <div className={styles.tableRow} key={c.id}>
@@ -203,7 +198,7 @@ const ChamadoTable = ({
 function GerenciamentoChamados({ chamados, setChamados, usuarios }) {
   const [statusFilter, setStatusFilter] = useState('todos');
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortConfig, setSortConfig] = useState({ key: 'criado_em', direction: 'descending' });
+  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'descending' });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingChamado, setEditingChamado] = useState(null);
   const [chamadoParaInativar, setChamadoParaInativar] = useState(null);
@@ -242,7 +237,6 @@ function GerenciamentoChamados({ chamados, setChamados, usuarios }) {
     fetchChamados().then(() => toast.success("Relatório de chamados carregado!"));
   }, [fetchChamados]);
 
-  // CORRIGIDO: Filtro de técnicos agora é case-insensitive
   const tecnicos = useMemo(() => 
     usuarios.filter(u => 
         u.funcao.toLowerCase().includes('técnico') || 
@@ -264,27 +258,39 @@ function GerenciamentoChamados({ chamados, setChamados, usuarios }) {
             (c.numero_patrimonio || '').toLowerCase().includes(lowercasedFilter)
         );
     }
-    if (sortConfig.key) { /* ... (código de ordenação) ... */ }
+    items.sort((a, b) => {
+        if (!sortConfig.key) return 0;
+        const key = sortConfig.key;
+        const valA = a[key] === null || a[key] === undefined ? '' : a[key].toString().toLowerCase();
+        const valB = b[key] === null || b[key] === undefined ? '' : b[key].toString().toLowerCase();
+
+        if (valA < valB) return sortConfig.direction === 'ascending' ? -1 : 1;
+        if (valA > valB) return sortConfig.direction === 'ascending' ? 1 : -1;
+        return 0;
+    });
     return items;
   }, [chamados, statusFilter, searchTerm, sortConfig]);
 
   const { paginatedItems: paginatedChamados, currentPage, setCurrentPage, totalPages } = usePagination(filteredAndSortedChamados, ITEMS_PER_PAGE);
 
-  const handleSort = (key) => { /* ... */ };
+  const handleSort = (key) => {
+    setSortConfig(prev => ({
+        key,
+        direction: prev.key === key && prev.direction === 'ascending' ? 'descending' : 'ascending'
+    }));
+  };
   
   const openModal = (chamado = null) => { setEditingChamado(chamado); setIsModalOpen(true); };
   const closeModal = () => { setIsModalOpen(false); setEditingChamado(null); };
 
   const handleSaveChamado = async (formData) => {
-    // Validação do ID de patrimônio
     if (formData.patrimonio_id) {
         const patrimonioEmUso = chamados.find(c => 
             c.patrimonio_id === parseInt(formData.patrimonio_id) && 
-            c.id !== editingChamado?.id && // Ignora o próprio chamado que está sendo editado
+            c.id !== editingChamado?.id &&
             c.status !== 'concluído' && 
             c.status !== 'inativo'
         );
-
         if (patrimonioEmUso) {
             toast.error(`Patrimônio já está em uso no chamado #${patrimonioEmUso.id}.`);
             return;
@@ -293,61 +299,59 @@ function GerenciamentoChamados({ chamados, setChamados, usuarios }) {
 
     if (editingChamado) {
         const dadosParaAtualizar = { ...editingChamado, ...formData };
-        
         try {
             const response = await fetch(`http://localhost:8080/chamados/put`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dadosParaAtualizar),
             });
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.mensagem || 'Falha ao atualizar o chamado.');
-            }
+            if (!response.ok) throw new Error((await response.json()).mensagem || 'Falha ao atualizar.');
             toast.success('Chamado atualizado com sucesso!');
             closeModal();
             fetchChamados();
         } catch (error) {
-            console.error("Erro ao atualizar chamado:", error);
             toast.error(`Erro: ${error.message}`);
         }
     } else {
-        toast.error("Funcionalidade de adicionar novo chamado ainda não conectada à API.");
-        closeModal();
+        const dadosParaCriar = {
+            ...formData,
+            patrimonio_id: formData.patrimonio_id || null,
+            tecnico_id: formData.tecnico_id || null,
+        };
+        try {
+            const response = await fetch('http://localhost:8080/chamados/post', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dadosParaCriar),
+            });
+            if (!response.ok) throw new Error((await response.json()).mensagem || 'Falha ao criar.');
+            toast.success('Chamado criado com sucesso!');
+            closeModal();
+            fetchChamados();
+        } catch (error) {
+            toast.error(`Erro: ${error.message}`);
+        }
     }
   };
   
   const handleInativarClick = (id) => {
-    const chamado = chamados.find(c => c.id === id);
-    setChamadoParaInativar(chamado);
+    setChamadoParaInativar(chamados.find(c => c.id === id));
   };
   
   const confirmInativar = async () => {
     if (!chamadoParaInativar) return;
-
-    const dadosParaAtualizar = {
-      ...chamadoParaInativar,
-      status: 'inativo'
-    };
-
+    const dadosParaAtualizar = { ...chamadoParaInativar, status: 'inativo' };
     try {
       const response = await fetch(`http://localhost:8080/chamados/put`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dadosParaAtualizar),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.mensagem || 'Falha ao inativar o chamado.');
-      }
-      
+      if (!response.ok) throw new Error((await response.json()).mensagem || 'Falha ao inativar.');
       toast.success('Chamado inativado com sucesso!');
       setChamadoParaInativar(null);
       fetchChamados();
-
     } catch (error) {
-      console.error("Erro ao inativar chamado:", error);
       toast.error(`Erro: ${error.message}`);
       setChamadoParaInativar(null);
     }
@@ -357,45 +361,13 @@ function GerenciamentoChamados({ chamados, setChamados, usuarios }) {
     <>
       <ChamadoStats chamados={chamados} />
       <section className={styles.reportSection}>
-        <ChamadoHeader
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            openModal={openModal}
-        />
-        <ChamadoFilters
-            statusFilter={statusFilter}
-            setStatusFilter={setStatusFilter}
-        />
-        <ChamadoTable
-            paginatedChamados={paginatedChamados}
-            handleSort={handleSort}
-            sortConfig={sortConfig}
-            openModal={openModal}
-            handleDeleteChamado={handleInativarClick}
-        />
-        <PaginationControls
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-        />
+        <ChamadoHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} openModal={openModal} />
+        <ChamadoFilters statusFilter={statusFilter} setStatusFilter={setStatusFilter} />
+        <ChamadoTable paginatedChamados={paginatedChamados} handleSort={handleSort} sortConfig={sortConfig} openModal={openModal} handleDeleteChamado={handleInativarClick} />
+        <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
         
-        {isModalOpen && <ChamadoModal 
-          chamado={editingChamado} 
-          onClose={closeModal} 
-          onSave={handleSaveChamado} 
-          tecnicos={tecnicos} 
-          usuarios={usuarios} 
-          servicos={servicosDisponiveis} // MODIFICADO: Passando a nova lista de serviços
-        />}
-
-        {chamadoParaInativar && (
-          <ConfirmModal
-            title="Inativar Chamado"
-            message={`Tem certeza que deseja inativar o chamado #${chamadoParaInativar.id}?`}
-            onConfirm={confirmInativar}
-            onCancel={() => setChamadoParaInativar(null)}
-          />
-        )}
+        {isModalOpen && <ChamadoModal chamado={editingChamado} onClose={closeModal} onSave={handleSaveChamado} tecnicos={tecnicos} usuarios={usuarios} servicos={servicosDisponiveis} />}
+        {chamadoParaInativar && <ConfirmModal title="Inativar Chamado" message={`Tem certeza que deseja inativar o chamado #${chamadoParaInativar.id}?`} onConfirm={confirmInativar} onCancel={() => setChamadoParaInativar(null)} />}
       </section>
     </>
   );
@@ -414,14 +386,11 @@ function GerenciamentoUsuarios({ usuarios, setUsuarios }) {
             const data = await response.json();
             setUsuarios(data || []);
         } catch (error) {
-            console.error("Falha na busca por usuários: ", error);
             toast.error("Não foi possível carregar os usuários.");
         }
     }, [setUsuarios]);
 
-    useEffect(() => {
-        fetchUsuarios();
-    }, [fetchUsuarios]);
+    useEffect(() => { fetchUsuarios(); }, [fetchUsuarios]);
 
     const filteredUsuarios = useMemo(() => {
         if (!Array.isArray(usuarios)) return [];
@@ -433,14 +402,8 @@ function GerenciamentoUsuarios({ usuarios, setUsuarios }) {
     
     const { paginatedItems: paginatedUsuarios, currentPage, setCurrentPage, totalPages } = usePagination(filteredUsuarios, ITEMS_PER_PAGE);
 
-    const openModal = (usuario) => { 
-        setEditingUsuario(usuario); 
-        setIsModalOpen(true); 
-    };
-    const closeModal = () => { 
-        setIsModalOpen(false); 
-        setEditingUsuario(null); 
-    };
+    const openModal = (usuario) => { setEditingUsuario(usuario); setIsModalOpen(true); };
+    const closeModal = () => { setIsModalOpen(false); setEditingUsuario(null); };
 
     const handleSaveUsuario = async (formData) => {
         if (editingUsuario) {
@@ -450,15 +413,11 @@ function GerenciamentoUsuarios({ usuarios, setUsuarios }) {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData),
                 });
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.mensagem || 'Falha ao atualizar o usuário.');
-                }
+                if (!response.ok) throw new Error((await response.json()).mensagem || 'Falha ao atualizar.');
                 toast.success("Usuário atualizado com sucesso!");
                 closeModal();
                 fetchUsuarios();
             } catch (error) {
-                console.error("Erro ao atualizar usuário:", error);
                 toast.error(`Erro: ${error.message}`);
             }
         }
@@ -496,7 +455,7 @@ function GerenciamentoUsuarios({ usuarios, setUsuarios }) {
         </section>
     );
 }
-//-----------------------------------------------------------------------------------------------------------------------------------------
+
 // --- 3. GERENCIAMENTO DE RELATÓRIOS (ANOTAÇÕES) ---
 function RelatoriosView({ chamados, setChamados }) {
     const [searchTerm, setSearchTerm] = useState('');
@@ -513,32 +472,18 @@ function RelatoriosView({ chamados, setChamados }) {
 
     const { paginatedItems: paginatedChamados, currentPage, setCurrentPage, totalPages } = usePagination(filteredChamados, ITEMS_PER_PAGE);
 
-    const handleOpenModal = (chamado = null) => {
-        setEditingChamado(chamado);
-        setIsModalOpen(true);
-    };
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-        setEditingChamado(null);
-    };
+    const openModal = (chamado = null) => { setEditingChamado(chamado); setIsModalOpen(true); };
+    const closeModal = () => { setIsModalOpen(false); setEditingChamado(null); };
 
     const handleSaveAnotacao = (formData) => {
-      setChamados(prevChamados => prevChamados.map(chamado => 
-        chamado.id === parseInt(formData.chamado_id)
-          ? { ...chamado, descricao: formData.conteudo }
-          : chamado
-      ));
+      setChamados(prev => prev.map(c => c.id === parseInt(formData.chamado_id) ? { ...c, descricao: formData.conteudo } : c));
       toast.success('Anotação salva com sucesso!');
-      handleCloseModal();
+      closeModal();
     };
 
     const handleDeleteAnotacao = (chamadoId) => {
-        if (window.confirm('Tem certeza que deseja limpar a descrição deste chamado? A ação não pode ser desfeita.')) {
-            setChamados(prevChamados => prevChamados.map(chamado => 
-                chamado.id === chamadoId
-                  ? { ...chamado, descricao: '' }
-                  : chamado
-            ));
+        if (window.confirm('Tem certeza? A descrição será limpa.')) {
+            setChamados(prev => prev.map(c => c.id === chamadoId ? { ...c, descricao: '' } : c));
             toast('Anotação excluída!', { icon: '🗑️' });
         }
     };
@@ -550,34 +495,23 @@ function RelatoriosView({ chamados, setChamados }) {
                 <div className={styles.controlsContainer}>
                     <div className={styles.searchContainer}>
                         <FiSearch className={styles.searchIcon} />
-                        <input
-                            type="text"
-                            placeholder="Buscar por Título, ID ou Conteúdo..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className={styles.searchInput}
-                        />
+                        <input type="text" placeholder="Buscar por Título, ID ou Conteúdo..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={styles.searchInput} />
                     </div>
-                    <button onClick={() => handleOpenModal()} className={styles.addButton}>
-                        <FiPlus /> Adicionar Anotação
-                    </button>
+                    <button onClick={() => openModal()} className={styles.addButton}><FiPlus /> Adicionar Anotação</button>
                 </div>
             </div>
             
             <div className={styles.tableContainer}>
                 <div className={`${styles.tableRow} ${styles.headerRow}`}>
-                    <span>ID do Chamado</span>
-                    <span>Título do Chamado</span>
-                    <span>Conteúdo (Descrição)</span>
-                    <span>Ações</span>
+                    <span>ID do Chamado</span><span>Título</span><span>Conteúdo (Descrição)</span><span>Ações</span>
                 </div>
                 {paginatedChamados.map(chamado => (
                     <div className={styles.tableRow} key={chamado.id}>
-                        <span data-label="ID do Chamado"><strong>#{chamado.id}</strong></span>
-                        <span data-label="Título do Chamado">{chamado.titulo}</span>
+                        <span data-label="ID"><strong>#{chamado.id}</strong></span>
+                        <span data-label="Título">{chamado.titulo}</span>
                         <span data-label="Conteúdo" className={styles.relatorioContent}>{chamado.descricao}</span>
                         <div data-label="Ações" className={styles.actions}>
-                            <button onClick={() => handleOpenModal(chamado)} className={styles.actionButton} aria-label="Editar"><FiEdit /></button>
+                            <button onClick={() => openModal(chamado)} className={styles.actionButton} aria-label="Editar"><FiEdit /></button>
                             <button onClick={() => handleDeleteAnotacao(chamado.id)} className={styles.closeButton} aria-label="Excluir"><FiTrash2 /></button>
                         </div>
                     </div>
@@ -585,7 +519,7 @@ function RelatoriosView({ chamados, setChamados }) {
             </div>
             <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
             
-            {isModalOpen && <RelatorioModal relatorio={editingChamado} onClose={handleCloseModal} onSave={handleSaveAnotacao} chamados={chamados} />}
+            {isModalOpen && <RelatorioModal relatorio={editingChamado} onClose={closeModal} onSave={handleSaveAnotacao} chamados={chamados} />}
         </section>
     );
 }
@@ -593,25 +527,29 @@ function RelatoriosView({ chamados, setChamados }) {
 // --- MODAIS ---
 function ChamadoModal({ chamado, onClose, onSave, tecnicos, usuarios, servicos }) {
   const [formData, setFormData] = useState({
-    titulo: '',
-    descricao: '',
-    patrimonio_id: '',
-    servicos_id: '',
-    tecnico_id: '',
-    usuario_id: '',
-    status: 'pendente',
+    titulo: '', descricao: '', patrimonio_id: '', servicos_id: '', tecnico_id: '', usuario_id: '', status: 'pendente',
   });
 
+  // ============================================================================
+  // --- BANNER: CORREÇÃO PARA PRÉ-PREENCHER O FORMULÁRIO DE EDIÇÃO ---
+  // Este hook converte todos os IDs para string para garantir que os campos
+  // <select> e <input> encontrem os valores corretos para exibir.
+  // ============================================================================
   useEffect(() => {
     if (chamado) {
       setFormData({
         titulo: chamado.titulo || '',
         descricao: chamado.descricao || '',
-        patrimonio_id: chamado.patrimonio_id || '',
-        servicos_id: chamado.servicos_id || '',
-        tecnico_id: chamado.tecnico_id || '',
-        usuario_id: chamado.usuario_id || '',
+        patrimonio_id: (chamado.patrimonio_id || '').toString(),
+        servicos_id: (chamado.servicos_id || '').toString(),
+        tecnico_id: (chamado.tecnico_id || '').toString(),
+        usuario_id: (chamado.usuario_id || '').toString(),
         status: chamado.status || 'pendente',
+      });
+    } else {
+      // Limpa o formulário para um novo chamado
+      setFormData({
+        titulo: '', descricao: '', patrimonio_id: '', servicos_id: '', tecnico_id: '', usuario_id: '', status: 'pendente',
       });
     }
   }, [chamado]);
@@ -645,30 +583,17 @@ function ChamadoModal({ chamado, onClose, onSave, tecnicos, usuarios, servicos }
             <div className={styles.formGroup}><label htmlFor="titulo">Título do Chamado</label><input type="text" id="titulo" name="titulo" value={formData.titulo} onChange={handleChange} required autoFocus /></div>
             <div className={styles.formGroup}><label htmlFor="descricao">Descrição do Problema</label><textarea id="descricao" name="descricao" rows="4" value={formData.descricao} onChange={handleChange}></textarea></div>
             <div className={styles.formRow}>
-              <div className={styles.formGroup}><label htmlFor="patrimonio_id">ID do Patrimônio (Opcional)</label><input type="text" id="patrimonio_id" name="patrimonio_id" value={formData.patrimonio_id || ''} onChange={handleChange} /></div>
+              <div className={styles.formGroup}><label htmlFor="patrimonio_id">ID do Patrimônio (Opcional)</label><input type="text" id="patrimonio_id" name="patrimonio_id" value={formData.patrimonio_id} onChange={handleChange} /></div>
               <div className={styles.formGroup}><label htmlFor="servicos_id">Tipo de Serviço</label><select id="servicos_id" name="servicos_id" value={formData.servicos_id} onChange={handleChange} required><option value="">Selecione...</option>{servicos.map(s => <option key={s.id} value={s.id}>{s.nome}</option>)}</select></div>
             </div>
             <div className={styles.formRow}>
               <div className={styles.formGroup}>
                   <label htmlFor="usuario_id">Usuário Solicitante</label>
-                  <select 
-                      id="usuario_id" 
-                      name="usuario_id" 
-                      value={formData.usuario_id} 
-                      onChange={handleChange} 
-                      required
-                      disabled={!!chamado}
-                  >
-                      <option value="">Selecione...</option>
-                      {usuarios.map(u => <option key={u.id} value={u.id}>{u.nome}</option>)}
-                  </select>
+                  <select id="usuario_id" name="usuario_id" value={formData.usuario_id} onChange={handleChange} required disabled={!!chamado}><option value="">Selecione...</option>{usuarios.map(u => <option key={u.id} value={u.id}>{u.nome}</option>)}</select>
               </div>
               <div className={styles.formGroup}>
                   <label htmlFor="tecnico_id">Atribuir a</label>
-                  <select id="tecnico_id" name="tecnico_id" value={formData.tecnico_id || ''} onChange={handleChange}>
-                      <option value="">Não Atribuído</option>
-                      {tecnicos.map(t => <option key={t.id} value={t.id}>{t.nome}</option>)}
-                  </select>
+                  <select id="tecnico_id" name="tecnico_id" value={formData.tecnico_id} onChange={handleChange}><option value="">Não Atribuído</option>{tecnicos.map(t => <option key={t.id} value={t.id}>{t.nome}</option>)}</select>
               </div>
             </div>
             {chamado && (
@@ -683,13 +608,12 @@ function ChamadoModal({ chamado, onClose, onSave, tecnicos, usuarios, servicos }
 }
 
 function UsuarioModal({ usuario, onClose, onSave }) {
-    const [formData, setFormData] = useState({
-        id_login: usuario?.id_login || '',
-        nome: usuario?.nome || '',
-        email: usuario?.email || '',
-        funcao: usuario?.funcao || 'Usuário',
-        status: usuario?.status || 'ativo',
-    });
+    const [formData, setFormData] = useState({ id_login: '', nome: '', email: '', funcao: 'Usuário', status: 'ativo' });
+    useEffect(() => {
+        if (usuario) setFormData({
+            id_login: usuario.id_login, nome: usuario.nome, email: usuario.email, funcao: usuario.funcao, status: usuario.status
+        });
+    }, [usuario]);
     const handleChange = (e) => { const { name, value } = e.target; setFormData(prev => ({ ...prev, [name]: value })); };
     const handleSubmit = (e) => { e.preventDefault(); onSave(formData); };
     useEffect(() => {
@@ -704,35 +628,15 @@ function UsuarioModal({ usuario, onClose, onSave }) {
           <div className={styles.modalHeader}><h2>Editar Usuário</h2><button type="button" className={styles.closeModalButton} onClick={onClose}><FiX /></button></div>
           <div className={styles.modalBody}>
             <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                    <label htmlFor="id_login">ID</label>
-                    <input type="text" id="id_login" name="id_login" value={formData.id_login} disabled />
-                </div>
-                <div className={styles.formGroup}>
-                    <label htmlFor="nome">Nome Completo</label>
-                    <input type="text" id="nome" name="nome" value={formData.nome} disabled />
-                </div>
+                <div className={styles.formGroup}><label>ID</label><input type="text" value={formData.id_login} disabled /></div>
+                <div className={styles.formGroup}><label>Nome</label><input type="text" value={formData.nome} disabled /></div>
             </div>
             <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                    <label htmlFor="email">Email</label>
-                    <input type="email" id="email" name="email" value={formData.email} disabled />
-                </div>
-                <div className={styles.formGroup}>
-                    <label htmlFor="funcao">Função</label>
-                    <select id="funcao" name="funcao" value={formData.funcao} onChange={handleChange} autoFocus>
-                        {FUNCOES.map(f => <option key={f} value={f}>{f}</option>)}
-                    </select>
-                </div>
+                <div className={styles.formGroup}><label>Email</label><input type="email" value={formData.email} disabled /></div>
+                <div className={styles.formGroup}><label htmlFor="funcao">Função</label><select id="funcao" name="funcao" value={formData.funcao} onChange={handleChange} autoFocus>{FUNCOES.map(f => <option key={f} value={f}>{f}</option>)}</select></div>
             </div>
             <div className={styles.formRow}>
-                 <div className={styles.formGroup}>
-                    <label htmlFor="status">Status</label>
-                    <select id="status" name="status" value={formData.status} onChange={handleChange}>
-                        <option value="ativo">Ativo</option>
-                        <option value="inativo">Inativo</option>
-                    </select>
-                 </div>
+                 <div className={styles.formGroup}><label htmlFor="status">Status</label><select id="status" name="status" value={formData.status} onChange={handleChange}><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select></div>
             </div>
           </div>
           <div className={styles.modalFooter}><button type="button" className={styles.cancelButton} onClick={onClose}>Cancelar</button><button type="submit" className={styles.saveButton}>Salvar Alterações</button></div>
@@ -743,16 +647,11 @@ function UsuarioModal({ usuario, onClose, onSave }) {
 }
 
 function RelatorioModal({ relatorio, onClose, onSave, chamados }) {
-    const [formData, setFormData] = useState({
-        chamado_id: relatorio?.id || '',
-        conteudo: relatorio?.descricao || '',
-    });
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-    };
-
+    const [formData, setFormData] = useState({ chamado_id: '', conteudo: '' });
+    useEffect(() => {
+        if (relatorio) setFormData({ chamado_id: relatorio.id, conteudo: relatorio.descricao });
+    }, [relatorio]);
+    const handleChange = (e) => { const { name, value } = e.target; setFormData(prev => ({ ...prev, [name]: value })); };
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!formData.chamado_id || !formData.conteudo) {
@@ -761,45 +660,22 @@ function RelatorioModal({ relatorio, onClose, onSave, chamados }) {
         }
         onSave(formData);
     };
-
     useEffect(() => {
-        const handleEsc = (event) => { if (event.key === 'Escape') onClose(); };
-        window.addEventListener('keydown', handleEsc);
-        return () => window.removeEventListener('keydown', handleEsc);
+      const handleEsc = (event) => { if (event.key === 'Escape') onClose(); };
+      window.addEventListener('keydown', handleEsc);
+      return () => window.removeEventListener('keydown', handleEsc);
     }, [onClose]);
 
     return (
         <div className={styles.modalBackdrop} onClick={onClose}>
             <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
                 <form onSubmit={handleSubmit}>
-                    <div className={styles.modalHeader}>
-                        <h2>{relatorio ? 'Editar Anotação' : 'Adicionar Anotação'}</h2>
-                        <button type="button" className={styles.closeModalButton} onClick={onClose}><FiX /></button>
-                    </div>
+                    <div className={styles.modalHeader}><h2>{relatorio ? 'Editar Anotação' : 'Adicionar Anotação'}</h2><button type="button" className={styles.closeModalButton} onClick={onClose}><FiX /></button></div>
                     <div className={styles.modalBody}>
-                        <div className={styles.formGroup}>
-                            <label htmlFor="chamado_id">Chamado</label>
-                            <select 
-                                id="chamado_id" 
-                                name="chamado_id" 
-                                value={formData.chamado_id} 
-                                onChange={handleChange} 
-                                required
-                                disabled={!!relatorio}
-                            >
-                                <option value="">Selecione um Chamado</option>
-                                {chamados.map(c => <option key={c.id} value={c.id}>#{c.id} - {c.titulo}</option>)}
-                            </select>
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label htmlFor="conteudo">Conteúdo da Anotação (Descrição)</label>
-                            <textarea id="conteudo" name="conteudo" rows="6" value={formData.conteudo} onChange={handleChange} required></textarea>
-                        </div>
+                        <div className={styles.formGroup}><label htmlFor="chamado_id">Chamado</label><select id="chamado_id" name="chamado_id" value={formData.chamado_id} onChange={handleChange} required disabled={!!relatorio}><option value="">Selecione</option>{chamados.map(c => <option key={c.id} value={c.id}>#{c.id} - {c.titulo}</option>)}</select></div>
+                        <div className={styles.formGroup}><label htmlFor="conteudo">Conteúdo (Descrição)</label><textarea id="conteudo" name="conteudo" rows="6" value={formData.conteudo} onChange={handleChange} required></textarea></div>
                     </div>
-                    <div className={styles.modalFooter}>
-                        <button type="button" className={styles.cancelButton} onClick={onClose}>Cancelar</button>
-                        <button type="submit" className={styles.saveButton}>Salvar Anotação</button>
-                    </div>
+                    <div className={styles.modalFooter}><button type="button" className={styles.cancelButton} onClick={onClose}>Cancelar</button><button type="submit" className={styles.saveButton}>Salvar</button></div>
                 </form>
             </div>
         </div>
@@ -810,19 +686,9 @@ function ConfirmModal({ title, message, onConfirm, onCancel }) {
     return (
         <div className={styles.modalBackdrop}>
             <div className={styles.modalContent} style={{ maxWidth: '450px' }}>
-                <div className={styles.modalHeader}>
-                    <h2 style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      <FiAlertTriangle style={{ color: 'var(--color-urgent)' }}/> {title}
-                    </h2>
-                    <button type="button" className={styles.closeModalButton} onClick={onCancel}><FiX /></button>
-                </div>
-                <div className={styles.modalBody}>
-                    <p style={{ fontSize: '1.1rem', lineHeight: '1.5' }}>{message}</p>
-                </div>
-                <div className={styles.modalFooter}>
-                    <button type="button" className={styles.cancelButton} onClick={onCancel}>Cancelar</button>
-                    <button type="button" className={styles.closeButton} onClick={onConfirm} style={{ background: 'var(--color-urgent)'}}>Confirmar</button>
-                </div>
+                <div className={styles.modalHeader}><h2 style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}><FiAlertTriangle style={{ color: 'var(--color-urgent)' }}/> {title}</h2><button type="button" className={styles.closeModalButton} onClick={onCancel}><FiX /></button></div>
+                <div className={styles.modalBody}><p style={{ fontSize: '1.1rem', lineHeight: '1.5' }}>{message}</p></div>
+                <div className={styles.modalFooter}><button type="button" className={styles.cancelButton} onClick={onCancel}>Cancelar</button><button type="button" className={styles.closeButton} onClick={onConfirm} style={{ background: 'var(--color-urgent)'}}>Confirmar</button></div>
             </div>
         </div>
     );
