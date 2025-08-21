@@ -13,8 +13,44 @@ const initialServicos = { 1: 'Manutenção Corretiva', 2: 'Manutenção Preventi
 const initialUsuarios = { 1: 'Carlos Souza', 2: 'Ana Pereira', 4: 'João Silva', 5: 'Fernanda Martins', 6: 'Roberto Alves' };
 const initialPatrimonio = { 1: 'Computador do Setor X', 2: 'Patrimônio Y', 3: 'Projetor da Sala de Reunião', 101: 'Impressora 3D', 102: 'Projetor', 104: 'PC Recepção' };
 
-// ID e nome do técnico que está usando o sistema
-const LOGGED_IN_TECNICO = { id: 1, nome: 'Carlos Souza' }; 
+// --- LÓGICA PARA TÉCNICO LOGADO VIA LOCALSTORAGE ---
+
+// Para fins de teste, este bloco simula um processo de login que salva os dados
+// do técnico no localStorage. Em uma aplicação real, isso ocorreria após a
+// autenticação do usuário.
+if (typeof window !== 'undefined') {
+  const STORAGE_KEY = 'dados_tecnico_logado';
+  const DADOS_TECNICO_PARA_TESTE = { id: 1, nome: 'Carlos Souza' };
+
+  // Verifica se o item já existe para não sobrescrevê-lo a cada recarregamento
+  if (!localStorage.getItem(STORAGE_KEY)) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(DADOS_TECNICO_PARA_TESTE));
+  }
+}
+
+// Função para ler os dados do técnico do localStorage de forma segura.
+// Retorna um objeto padrão para evitar erros caso os dados não existam.
+const getLoggedInTecnico = () => {
+  // Verifica se o código está sendo executado no navegador
+  if (typeof window === 'undefined') {
+    return { id: null, nome: 'Carregando...' };
+  }
+  try {
+    const storedData = localStorage.getItem('dados_tecnico_logado');
+    if (storedData) {
+      // Converte a string JSON de volta para um objeto
+      return JSON.parse(storedData);
+    }
+  } catch (error) {
+    console.error("Falha ao ler ou analisar os dados do técnico do localStorage:", error);
+  }
+  // Retorna um valor padrão se nada for encontrado ou se ocorrer um erro
+  return { id: null, nome: 'Nenhum técnico logado' };
+};
+
+// Lê os dados do técnico ao carregar o componente
+const LOGGED_IN_TECNICO = getLoggedInTecnico();
+
 
 // Configurações visuais para cada status de chamado
 const STATUS_CONFIG = {
@@ -182,6 +218,13 @@ export default function TecnicoDashboard() {
   });
 
   useEffect(() => {
+    // Se não houver um técnico logado, não faz sentido buscar os chamados.
+    if (!LOGGED_IN_TECNICO.id) {
+        setIsLoading(false);
+        addToaster('ID do técnico não encontrado. Faça o login novamente.', 'error');
+        return;
+    }
+
     const fetchChamados = async () => {
       setIsLoading(true);
       const postRequest = (body) => fetch('http://localhost:8080/chamados/getFilter', {
@@ -357,6 +400,9 @@ export default function TecnicoDashboard() {
 
   const filteredAndSortedChamados = useMemo(() => {
     let result = [...chamados];
+    // Se não houver ID do técnico, retorna um array vazio.
+    if (!LOGGED_IN_TECNICO.id) return [];
+    
     result = result.filter(t => t.tecnico_id === LOGGED_IN_TECNICO.id || t.tecnico_id === null);
     if (statusFilter !== 'todos') {
       result = result.filter(t => t.status === statusFilter);

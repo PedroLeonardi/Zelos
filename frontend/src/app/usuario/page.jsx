@@ -182,7 +182,7 @@ export default function UsuarioDashboard() {
   // garantindo consistência no ambiente de desenvolvimento.
   // ============================================================================
   useEffect(() => {
-    localStorage.setItem('id', "2"); // Força o ID a ser '1'
+    localStorage.setItem('id', "1"); // Força o ID a ser '1'
     const id = localStorage.getItem('id'); // Lê o ID que acabamos de definir
     setLoggedInUserId(id); // Armazena o ID no estado do componente
   }, []);

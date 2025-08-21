@@ -10,6 +10,7 @@ import relatorio from "./routes/relatorioRotas.js"
 import user from "./routes/userRotas.js"
 import apontamentos from "./routes/apontamentosRotas.js"
 import patrimonioRouter from './routes/patrimonioRotas.js';
+import especialidades from './routes/especialidadesRotas.js'
 
 // 1. Carrega variáveis de ambiente PRIMEIRO
 dotenv.config();
@@ -60,6 +61,8 @@ app.use('/relatorio', relatorio)
 app.use("/apontamentos", apontamentos)
 
 app.use("/patrimonio", patrimonioRouter);
+
+app.use("/especialidades", especialidades)
 
 
 //a rota relatorio ta fucionando toda
