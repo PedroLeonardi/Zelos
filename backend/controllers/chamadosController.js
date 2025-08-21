@@ -90,6 +90,7 @@ const updateChamadosControllerJson = async (req, res) => {
 
 const readFilterChamadosController = async (req, res) => {
     try {
+        console.log(req.body, "--CONTROLER----------------------------------------------------")
         return res.status(200).json(await readFilterChamados(req.body))
     } catch (err) {
         console.error("Erro ao Ler meus Chamdos: ", err)

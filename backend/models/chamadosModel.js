@@ -124,6 +124,7 @@ const atribuirChamados = (data, id) => {
 
 const readFilterChamados = ( filter) => {
     try {
+        console.log(filter, "-----------------------------------------------------------------------------")
         const data = `${filter.key} = '${filter.value}'`
         
         return readAll ("chamados", data)

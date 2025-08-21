@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import styles from './usuario.module.css';
 import Header from '../components/Header';
 
-// --- ÍCONES (COM REMOÇÃO) ---
+// --- ÍCONES ---
 const PlusIcon = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>;
 const SpinnerIcon = () => <svg className={styles.spinner} viewBox="0 0 50 50"><circle className={styles.spinnerPath} cx="25" cy="25" r="20" fill="none" strokeWidth="5"></circle></svg>;
-// O PaperclipIcon foi removido.
 
 // --- CONFIGURAÇÃO CENTRALIZADA ---
 const STATUS_CONFIG = {
@@ -67,7 +66,6 @@ const TicketCard = ({ ticket, onViewDetails }) => {
 };
 
 const TicketModal = ({ modalConfig, onClose, onCreateTicket, isSubmitting }) => {
-  // Estado simplificado sem 'image' e 'imageName'
   const [newTicket, setNewTicket] = useState({ 
     title: '', 
     description: '', 
@@ -86,8 +84,6 @@ const TicketModal = ({ modalConfig, onClose, onCreateTicket, isSubmitting }) => 
     e.preventDefault();
     onCreateTicket(newTicket);
   };
-  
-  // A função handleImageChange foi removida.
   
   useEffect(() => {
     const handleEsc = (event) => {
@@ -127,8 +123,6 @@ const TicketModal = ({ modalConfig, onClose, onCreateTicket, isSubmitting }) => 
                 <textarea id="description" rows="5" placeholder="Descreva o problema ou a sua necessidade com o máximo de detalhes." value={newTicket.description} onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })} required />
               </div>
               
-              {/* O campo de anexo de imagem foi removido daqui. */}
-
               <div className={styles.modalActions}>
                 <button type="button" className={`${styles.button} ${styles.buttonSecondary}`} onClick={onClose} disabled={isSubmitting}>Cancelar</button>
                 <button type="submit" className={`${styles.button} ${styles.buttonPrimary}`} disabled={isSubmitting}>
@@ -173,29 +167,40 @@ const EmptyState = ({ onOpenModal }) => (
     </div>
 );
 
-
 // --- PÁGINA PRINCIPAL ---
 export default function UsuarioDashboard() {
+  const [LOGGED_IN_USER_ID, setLoggedInUserId] = useState(null);
   const [tickets, setTickets] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [modal, setModal] = useState({ isOpen: false, type: null, data: null });
   const [toasters, setToasters] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // --- FUNÇÕES DE API ---
+  // ============================================================================
+  // --- BANNER: CORREÇÃO APLICADA ---
+  // A lógica agora FORÇA a definição do ID para '1' toda vez que a página carrega,
+  // garantindo consistência no ambiente de desenvolvimento.
+  // ============================================================================
+  useEffect(() => {
+    localStorage.setItem('id', "2"); // Força o ID a ser '1'
+    const id = localStorage.getItem('id'); // Lê o ID que acabamos de definir
+    setLoggedInUserId(id); // Armazena o ID no estado do componente
+  }, []);
 
-  const fetchTickets = async () => {
+  const fetchTickets = useCallback(async () => {
+    if (!LOGGED_IN_USER_ID) return [];
+    
     const apiUrl = 'http://localhost:8080/chamados/getFilter';
-    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer SEU_TOKEN_JWT_AQUI` };
-    const body = { "key": "usuario_id", "value": "2" };
+    const headers = { 'Content-Type': 'application/json' };
+    const body = { "key": "usuario_id", "value": LOGGED_IN_USER_ID };
     const response = await fetch(apiUrl, { method: "POST", headers, body: JSON.stringify(body) });
     if (!response.ok) throw new Error('Falha ao buscar os chamados da API');
     return response.json();
-  };
+  }, [LOGGED_IN_USER_ID]);
 
   const fetchServiceById = async (id) => {
     const apiUrl = `http://localhost:8080/servico/getFilter/`;
-    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer SEU_TOKEN_JWT_AQUI` };
+    const headers = { 'Content-Type': 'application/json' };
     const body = { "key": "id", "value": `${id}` };
     const response = await fetch(apiUrl, { method: "POST", headers, body: JSON.stringify(body) });
     if (!response.ok) {
@@ -208,10 +213,10 @@ export default function UsuarioDashboard() {
 
   const createTicketApi = async (payload) => {
     const apiUrl = 'http://localhost:8080/chamados/post';
-    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer SEU_TOKEN_JWT_AQUI` };
+    const headers = { 'Content-Type': 'application/json' };
     const response = await fetch(apiUrl, { method: 'POST', headers, body: JSON.stringify(payload) });
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido na API' }));
+      const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
       throw new Error(errorData.mensagem || `Falha ao criar chamado: ${response.statusText}`);
     }
     return response.json();
@@ -229,39 +234,35 @@ export default function UsuarioDashboard() {
     return 'manutencao';
   };
 
-  const loadTicketData = async () => {
+  const loadTicketData = useCallback(async () => {
+    if (!LOGGED_IN_USER_ID) return; // Guarda de segurança adicional
     setIsLoading(true);
     try {
       const apiTickets = await fetchTickets();
       const enrichedTicketsPromises = apiTickets.map(async (ticket) => {
         const service = await fetchServiceById(ticket.servicos_id);
         return {
-          id: `#${ticket.id}`,
-          title: ticket.titulo,
-          description: ticket.descricao,
-          patrimony: ticket.patrimonio_id,
-          status: mapApiStatusToDisplayStatus(ticket.status),
-          type: mapServiceTitleToTypeKey(service.titulo),
-          serviceTitle: service.titulo,
-          createdAt: ticket.criado_em,
-          updatedAt: ticket.atualizado_em,
+          id: `#${ticket.id}`, title: ticket.titulo, description: ticket.descricao,
+          patrimony: ticket.patrimonio_id, status: mapApiStatusToDisplayStatus(ticket.status),
+          type: mapServiceTitleToTypeKey(service.titulo), serviceTitle: service.titulo,
+          createdAt: ticket.criado_em, updatedAt: ticket.atualizado_em,
         };
       });
       const finalTicketsData = await Promise.all(enrichedTicketsPromises);
       setTickets(finalTicketsData);
     } catch (error) {
-      console.error("Erro ao carregar dados da API:", error);
+      console.error("Erro ao carregar dados:", error);
       addToaster("Não foi possível carregar os chamados.", "error");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [LOGGED_IN_USER_ID, fetchTickets]);
 
   useEffect(() => {
-    loadTicketData();
-  }, []);
-
-  // --- Funções de manipulação ---
+    if (LOGGED_IN_USER_ID) {
+      loadTicketData();
+    }
+  }, [LOGGED_IN_USER_ID, loadTicketData]);
 
   const addToaster = (message, type = 'success') => {
     const id = Date.now();
@@ -269,50 +270,38 @@ export default function UsuarioDashboard() {
     setTimeout(() => setToasters(prev => prev.filter(t => t.id !== id)), 4000);
   };
 
-  const handleOpenModal = (type, data = null) => {
-    setModal({ isOpen: true, type, data });
-  };
-  
-  const handleCloseModal = () => {
-    setModal({ isOpen: false, type: null, data: null });
-  };
+  const handleOpenModal = (type, data = null) => setModal({ isOpen: true, type, data });
+  const handleCloseModal = () => setModal({ isOpen: false, type: null, data: null });
 
   const handleCreateTicket = async (formData) => {
     setIsSubmitting(true);
     try {
       if (formData.patrimony && !/^\d+$/.test(formData.patrimony)) {
-          throw new Error('O número do patrimônio fornecido é inválido. Digite apenas números.');
+          throw new Error('O número do patrimônio é inválido. Digite apenas números.');
       }
-
       const payload = {
         titulo: formData.title,
         descricao: formData.description,
         patrimonio_id: formData.patrimony || null, 
         servicos_id: TYPE_TO_ID_MAP[formData.type], 
-        usuario_id: "2"
+        usuario_id: LOGGED_IN_USER_ID
       };
-
       const newTicketFromApi = await createTicketApi(payload);
-
       addToaster(`Chamado #${newTicketFromApi.id || ''} criado com sucesso!`, 'success');
       handleCloseModal();
       await loadTicketData();
-
     } catch (error) {
       console.error("Erro ao criar chamado:", error);
-
       if (error.message && error.message.includes('chamado com numero de patrimonio já aberto')) {
         addToaster("Já existe um chamado aberto para este número de patrimônio.", "error");
       } else {
         addToaster(error.message || "Não foi possível criar o chamado.", "error");
       }
-      
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // --- RENDERIZAÇÃO DO COMPONENTE ---
   return (
     <>
       <Header />
