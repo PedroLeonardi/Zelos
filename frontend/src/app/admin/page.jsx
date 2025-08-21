@@ -450,7 +450,6 @@ function GerenciamentoUsuarios({ usuarios, setUsuarios }) {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData),
                 });
-                console.log(formData)
                 if (!response.ok) {
                     const errorData = await response.json();
                     throw new Error(errorData.mensagem || 'Falha ao atualizar o usuário.');
