@@ -8,31 +8,20 @@ import Header from '../components/Header'; // <-- Lembre-se de ter este componen
 const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="currentColor" width="18" height="18"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"/></svg>;
 
 // --- DADOS E CONFIGURAÇÕES ---
-// Mapeamentos estáticos. Idealmente, viriam de uma API no futuro.
 const initialServicos = { 1: 'Manutenção Corretiva', 2: 'Manutenção Preventiva', 3: 'Instalação/Configuração' };
 const initialUsuarios = { 1: 'Carlos Souza', 2: 'Ana Pereira', 4: 'João Silva', 5: 'Fernanda Martins', 6: 'Roberto Alves' };
 const initialPatrimonio = { 1: 'Computador do Setor X', 2: 'Patrimônio Y', 3: 'Projetor da Sala de Reunião', 101: 'Impressora 3D', 102: 'Projetor', 104: 'PC Recepção' };
 
-// --- LÓGICA PARA TÉCNICO LOGADO VIA TOKEN JWT (SIMULADO) ---
+// --- LÓGICA PARA TÉCNICO LOGADO VIA TOKEN JWT (CORRIGIDO) ---
 
-// Funções auxiliares para simular a criação e leitura de um JWT.
-// Em uma aplicação real, você usaria bibliotecas como 'jwt-decode' no front-end.
-
-/**
- * Decodifica um token JWT (simulado) para extrair os dados do payload.
- * @param {string} token O token JWT.
- * @returns {object|null} O payload decodificado ou null em caso de erro.
- */
+// Funções auxiliares para criar e ler um JWT.
 const decodeJwt = (token) => {
   try {
-    // Um JWT é dividido em 3 partes por ".". O payload é a segunda parte.
     const base64Url = token.split('.')[1];
-    // Substitui caracteres para que o btoa/atob padrão funcione.
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
     const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
         return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join(''));
-
     return JSON.parse(jsonPayload);
   } catch (error) {
     console.error("Erro ao decodificar o token:", error);
@@ -40,32 +29,24 @@ const decodeJwt = (token) => {
   }
 };
 
-/**
- * Cria um token JWT simulado (sem assinatura criptográfica).
- * @param {object} payload Os dados a serem incluídos no token.
- * @returns {string} O token JWT simulado.
- */
 const createMockJwt = (payload) => {
-    // Simula o header e o payload de um JWT, codificados em Base64Url.
     const mockHeader = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' })).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
     const mockPayload = btoa(JSON.stringify(payload)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-    // Em um JWT real, haveria uma terceira parte: a assinatura.
     return `${mockHeader}.${mockPayload}.`;
 }
 
-// Para fins de teste, este bloco simula um processo de login que salva o token
-// do técnico no localStorage.
+// Para fins de teste, este bloco salva o token do técnico no localStorage.
 if (typeof window !== 'undefined') {
-  const STORAGE_KEY = 'auth_token'; // Chave para o token
+  // CORREÇÃO: Usando uma chave dedicada para o token do técnico.
+  const STORAGE_KEY = 'tecnico_auth_token';
   
-  // X-X-X: A variável com os dados para teste é criada aqui antes de virar token.
   const DADOS_TECNICO_PARA_TESTE = {
     id: 1,
     nome: 'Carlos Souza',
-    role: 'tecnico' // Exemplo de outra informação relevante
+    role: 'tecnico'
   };
 
-  // Verifica se o token já existe para não sobrescrevê-lo a cada recarregamento
+  // Salva o token na chave correta.
   if (!localStorage.getItem(STORAGE_KEY)) {
     const token = createMockJwt(DADOS_TECNICO_PARA_TESTE);
     localStorage.setItem(STORAGE_KEY, token);
@@ -73,29 +54,30 @@ if (typeof window !== 'undefined') {
 }
 
 /**
- * Lê o token do localStorage, decodifica-o e retorna os dados do técnico.
- * Retorna um objeto padrão para evitar erros caso o token não exista ou seja inválido.
+ * Lê o token do técnico do localStorage, decodifica-o e retorna os dados.
  */
 const getTecnicoFromToken = () => {
   if (typeof window === 'undefined') {
     return { id: null, nome: 'Carregando...' };
   }
   try {
-    const token = localStorage.getItem('id_usuario');
+    // CORREÇÃO: Lendo da chave correta 'tecnico_auth_token'.
+    const token = localStorage.getItem('tecnico_auth_token');
+    
+    // Se o token existir, ele PRECISA ser decodificado.
     if (token) {
-      // Decodifica o token para obter o objeto com os dados do técnico
       const decodedData = decodeJwt(token);
       return decodedData || { id: null, nome: 'Token inválido' };
     }
   } catch (error) {
-    console.error("Falha ao ler o token do localStorage:", error);
+    console.error("Falha ao ler o token do técnico do localStorage:", error);
   }
-  // Retorna um valor padrão se nada for encontrado ou se ocorrer um erro
   return { id: null, nome: 'Nenhum técnico logado' };
 };
 
 // Lê e decodifica o token para obter os dados do técnico ao carregar o componente
 const LOGGED_IN_TECNICO = getTecnicoFromToken();
+
 
 // Configurações visuais para cada status de chamado
 const STATUS_CONFIG = {
@@ -145,14 +127,12 @@ const ModalContent = ({ ticket, handleFinalizarChamado, handleCreateApontamento,
     const isOwner = ticket.tecnico_id === LOGGED_IN_TECNICO.id;
     const isInProgress = ticket.status === 'em andamento';
 
-    // Helper para formatar a data e hora para exibição
     const formatDateTime = (isoString) => {
         if (!isoString) return 'N/A';
         const date = new Date(isoString);
         return date.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     }
 
-    // Helper para formatar a duração em segundos para um formato legível (ex: 1h 30m)
     const formatDuration = (seconds) => {
         if (seconds === null || isNaN(seconds) || seconds < 0) return '';
         const h = Math.floor(seconds / 3600);
@@ -168,7 +148,6 @@ const ModalContent = ({ ticket, handleFinalizarChamado, handleCreateApontamento,
     if (isOwner && isInProgress) {
       return (
         <>
-          {/* Seção para listar os apontamentos já existentes */}
           <div className={styles.apontamentosList}>
             <h4>Histórico de Apontamentos</h4>
             {apontamentos.length > 0 ? (
@@ -190,7 +169,6 @@ const ModalContent = ({ ticket, handleFinalizarChamado, handleCreateApontamento,
 
           <hr className={styles.modalSeparator}/>
 
-          {/* Formulário para adicionar novo apontamento e finalizar o chamado */}
           <form onSubmit={(e) => handleFinalizarChamado(e, ticket.id)} className={styles.reportForm}>
             <h4>Registrar Novo Trabalho / Finalizar</h4>
             
@@ -224,7 +202,6 @@ const ModalContent = ({ ticket, handleFinalizarChamado, handleCreateApontamento,
       );
     }
     
-    // Conteúdo exibido para chamados que não estão "em andamento"
     return (
       <section className={styles.reportDetails}>
         <h4>Relatório Final</h4>
@@ -250,7 +227,6 @@ export default function TecnicoDashboard() {
   const [emAndamentoLimit, setEmAndamentoLimit] = useState(5);
   const [concluidoLimit, setConcluidoLimit] = useState(5);
 
-  // Estados específicos para a gestão de apontamentos no modal
   const [apontamentos, setApontamentos] = useState([]);
   const [apontamentoForm, setApontamentoForm] = useState({
       descricao: '',
@@ -259,7 +235,6 @@ export default function TecnicoDashboard() {
   });
 
   useEffect(() => {
-    // Se não houver um técnico logado, não faz sentido buscar os chamados.
     if (!LOGGED_IN_TECNICO.id) {
         setIsLoading(false);
         addToaster('ID do técnico não encontrado. Faça o login novamente.', 'error');
@@ -394,7 +369,7 @@ export default function TecnicoDashboard() {
         
         addToaster('Apontamento adicionado com sucesso!', 'success');
         setApontamentoForm({ descricao: '', comeco: '', fim: '' });
-        fetchApontamentos(ticketId); // Re-busca os apontamentos para atualizar a lista
+        fetchApontamentos(ticketId);
     } catch (error) {
         console.error("Erro ao criar apontamento:", error);
         addToaster(error.message, 'error');
@@ -425,7 +400,6 @@ export default function TecnicoDashboard() {
 
   const handleOpenModal = (ticket) => {
     setSelectedTicket(ticket);
-    // Busca os apontamentos apenas para chamados que podem recebê-los
     if (ticket.status === 'em andamento') {
         fetchApontamentos(ticket.id);
     }
@@ -441,7 +415,6 @@ export default function TecnicoDashboard() {
 
   const filteredAndSortedChamados = useMemo(() => {
     let result = [...chamados];
-    // Se não houver ID do técnico, retorna um array vazio.
     if (!LOGGED_IN_TECNICO.id) return [];
     
     result = result.filter(t => t.tecnico_id === LOGGED_IN_TECNICO.id || t.tecnico_id === null);
@@ -453,7 +426,7 @@ export default function TecnicoDashboard() {
     }
     result.sort((a, b) => {
         if (sortBy === 'status') {
-            const statusOrder = ['em andamento', 'pendente', 'concluído' /*, 'aguardando aprovação'*/];
+            const statusOrder = ['em andamento', 'pendente', 'concluído'];
             return statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status);
         }
         return new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime();
