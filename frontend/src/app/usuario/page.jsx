@@ -17,7 +17,7 @@ const STATUS_CONFIG = {
 };
 
 const TYPE_CONFIG = {
-  manutencao:     { label: 'Manutenção Corretiva', color: '#0ea5e9' },
+  manutencao:     { label: 'Manutenção', color: '#0ea5e9' },
   apoio_tecnico:  { label: 'Apoio Técnico', color: '#8b5cf6' },
   limpeza:        { label: 'Limpeza', color: '#14b8a6' },
   externo:        { label: 'Serviço Externo', color: '#ef4444' }
@@ -104,11 +104,27 @@ const TicketModal = ({ modalConfig, onClose, onCreateTicket, isSubmitting }) => 
             <form onSubmit={handleSubmit}>
               <div className={styles.formGroup}>
                 <label htmlFor="title">Título do Chamado</label>
-                <input ref={titleInputRef} id="title" type="text" placeholder="Ex: Projetor do auditório não liga" value={newTicket.title} onChange={(e) => setNewTicket({ ...newTicket, title: e.target.value })} required />
+                <input 
+                  ref={titleInputRef} 
+                  id="title" 
+                  type="text" 
+                  placeholder="Ex: Projetor do auditório não liga" 
+                  value={newTicket.title} 
+                  onChange={(e) => setNewTicket({ ...newTicket, title: e.target.value })} 
+                  required 
+                  maxLength="27" 
+                />
               </div>
               <div className={styles.formGroup}>
                 <label htmlFor="patrimony">Número do Patrimônio (Opcional)</label>
-                <input id="patrimony" type="text" placeholder="Ex: 12345678" value={newTicket.patrimony} onChange={(e) => setNewTicket({ ...newTicket, patrimony: e.target.value })} />
+                <input 
+                  id="patrimony" 
+                  type="text" 
+                  placeholder="Ex: 12345678" 
+                  value={newTicket.patrimony} 
+                  onChange={(e) => setNewTicket({ ...newTicket, patrimony: e.target.value })} 
+                  maxLength="15" 
+                />
               </div>
               <div className={styles.formGroup}>
                 <label htmlFor="type">Tipo de Serviço</label>
@@ -120,7 +136,15 @@ const TicketModal = ({ modalConfig, onClose, onCreateTicket, isSubmitting }) => 
               </div>
               <div className={styles.formGroup}>
                 <label htmlFor="description">Descrição do Problema</label>
-                <textarea id="description" rows="5" placeholder="Descreva o problema ou a sua necessidade com o máximo de detalhes." value={newTicket.description} onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })} required />
+                <textarea 
+                  id="description" 
+                  rows="5" 
+                  placeholder="Descreva o problema ou a sua necessidade com o máximo de detalhes." 
+                  value={newTicket.description} 
+                  onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })} 
+                  required 
+                  maxLength="148" 
+                />
               </div>
               
               <div className={styles.modalActions}>
