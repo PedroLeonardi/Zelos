@@ -13,11 +13,11 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false); // Estado para controlar o carregamento
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    if (error) setError(""); // Limpa o erro ao digitar novamente
+    if (error) setError("");
   };
 
   const handleSubmit = async (e) => {
@@ -25,7 +25,6 @@ export default function LoginPage() {
     setError("");
     setIsLoading(true);
 
-    // É uma boa prática usar variáveis de ambiente para a URL da API
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/auth/login";
 
     try {
@@ -41,22 +40,26 @@ export default function LoginPage() {
         throw new Error(data.error || "Falha na autenticação. Verifique suas credenciais.");
       }
 
-      // IMPORTANTE: Após o login, o token JWT deve ser armazenado
-      // Ex: localStorage.setItem('authToken', data.token);
-      
+      // --- ALTERAÇÃO APLICADA AQUI ---
+      // 1. Salva o token recebido da API no localStorage.
+      // 2. Salva o ID do usuário também no localStorage.
+      localStorage.setItem('authToken', data.token);
+      localStorage.setItem('id', data.user.id); // Salvando o ID do usuário
+      // --- FIM DA ALTERAÇÃO ---
+
       const userRole = data.user.funcao;
 
       localStorage.setItem("id_usuario", data.user_id);
 
       // Redireciona com base na função do usuário
       switch (userRole) {
-        case "admin":
+        case "Administrador":
           router.push("/admin");
           break;
-        case "tecnico":
+        case "Técnico":
           router.push("/tecnico");
           break;
-        case "usuario":
+        case "Usuário":
           router.push("/usuario");
           break;
         default:
@@ -67,13 +70,12 @@ export default function LoginPage() {
       console.error("Erro no login:", err);
       setError(err.message);
     } finally {
-      setIsLoading(false); // Garante que o estado de loading seja desativado
+      setIsLoading(false);
     }
   };
 
   return (
     <main className={styles.container}>
-      {/* Logo SENAI */}
       <a href="https://sp.senai.br/" target="_blank" rel="noopener noreferrer" className={styles.logoContainer}>
         <img
           src="/SENAI_São_Paulo_logo.png"
@@ -83,7 +85,6 @@ export default function LoginPage() {
         />
       </a>
 
-      {/* Banner */}
       <section className={styles.bannerArea}>
         <div className={styles.banner}>
           <h2>Zelos</h2>
@@ -91,19 +92,16 @@ export default function LoginPage() {
         </div>
       </section>
 
-      {/* Formulário de Login */}
       <section className={styles.loginArea}>
         <form className={styles.loginForm} onSubmit={handleSubmit} noValidate>
           <h1 className={styles.title}>Entrar</h1>
 
-          {/* Mensagem de Erro com Acessibilidade */}
           {error && (
             <p className={styles.errorMessage} aria-live="polite">
               {error}
             </p>
           )}
 
-          {/* Campo ID */}
           <div className={styles.inputGroup}>
             <label htmlFor="username" className={styles.label}>
               ID de Usuário
@@ -123,7 +121,6 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Campo Senha */}
           <div className={styles.inputGroup}>
             <label htmlFor="password" className={styles.label}>
               Senha
