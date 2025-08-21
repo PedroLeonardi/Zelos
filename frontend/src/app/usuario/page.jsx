@@ -204,8 +204,10 @@ export default function UsuarioDashboard() {
   // Agora, a lógica lê o ID do usuário que foi salvo no localStorage
   // durante o processo de login.
   useEffect(() => {
+
     const id = localStorage.getItem('id');
     setLoggedInUserId(id);
+
   }, []);
   // --- FIM DA ALTERAÇÃO ---
 

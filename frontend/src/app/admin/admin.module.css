@@ -609,6 +609,10 @@ body {
     text-transform: uppercase;
     font-size: 0.85rem;
   }
+  .chartContainer {
+    height: 50vh;
+    min-height: 350px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -619,4 +623,15 @@ body {
   .modalContent { padding: 1.5rem; }
   .statsCard { padding: 1.5rem; }
   .statsCard p { font-size: 2rem; }
+}
+
+/* === ESTILOS PARA GRÁFICOS (VISÃO ÚNICA) === */
+.chartContainer {
+  position: relative;
+  height: 60vh; /* Altura considerável para o gráfico */
+  min-height: 400px;
+  padding: 1rem;
+  background-color: var(--background-color);
+  border-radius: var(--border-radius);
+  margin-top: 1.5rem;
 }
