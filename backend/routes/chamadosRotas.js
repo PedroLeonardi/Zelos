@@ -7,7 +7,7 @@ const router = express.Router();
 //auth,
 //auth,
 router.get("/get",  chamados.readAllChamadosController)
-router.get("/getFilter", chamados.readFilterChamadosController)
+router.post("/getFilter", chamados.readFilterChamadosController)
 router.post("/post",  chamados.createChamadosContrroler)
 router.put("/put/:id",  chamados.updateChamadosController)
 router.put("/put",  chamados.updateChamadosControllerJson)
