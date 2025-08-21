@@ -202,13 +202,18 @@ export default function UsuarioDashboard() {
 
   // ============================================================================
   // --- BANNER: CORREÇÃO APLICADA ---
-  // A lógica agora FORÇA a definição do ID para '1' toda vez que a página carrega,
-  // garantindo consistência no ambiente de desenvolvimento.
+  // A lógica agora lê e define o ID do usuário usando a chave 'id_usuario'
+  // do localStorage, conforme solicitado.
   // ============================================================================
   useEffect(() => {
-    localStorage.setItem('id', "1"); // Força o ID a ser '1'
-    const id = localStorage.getItem('id'); // Lê o ID que acabamos de definir
-    setLoggedInUserId(id); // Armazena o ID no estado do componente
+    // Para fins de teste, define 'id_usuario' como "1" se não existir.
+    if (!localStorage.getItem('id_usuario')) {
+        localStorage.setItem('id_usuario', "1"); 
+    }
+    
+    // Lê o ID da chave correta ('id_usuario').
+    const id = localStorage.getItem('id_usuario'); 
+    setLoggedInUserId(id); // Armazena o ID no estado do componente.
   }, []);
 
   const fetchTickets = useCallback(async () => {

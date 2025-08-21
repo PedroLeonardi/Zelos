@@ -72,7 +72,8 @@ router.post('/login', (req, res, next) => {
         return res.json({
           message: 'Autenticado com sucesso',
           token: token,
-          user: usuarioDoBanco
+          user: usuarioDoBanco,
+          user_id: usuarioDoBanco.id
         });
       });
     } catch (error) {

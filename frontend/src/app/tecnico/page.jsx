@@ -13,53 +13,94 @@ const initialServicos = { 1: 'Manutenção Corretiva', 2: 'Manutenção Preventi
 const initialUsuarios = { 1: 'Carlos Souza', 2: 'Ana Pereira', 4: 'João Silva', 5: 'Fernanda Martins', 6: 'Roberto Alves' };
 const initialPatrimonio = { 1: 'Computador do Setor X', 2: 'Patrimônio Y', 3: 'Projetor da Sala de Reunião', 101: 'Impressora 3D', 102: 'Projetor', 104: 'PC Recepção' };
 
-// --- LÓGICA PARA TÉCNICO LOGADO VIA LOCALSTORAGE ---
+// --- LÓGICA PARA TÉCNICO LOGADO VIA TOKEN JWT (SIMULADO) ---
 
-// Para fins de teste, este bloco simula um processo de login que salva os dados
-// do técnico no localStorage. Em uma aplicação real, isso ocorreria após a
-// autenticação do usuário.
+// Funções auxiliares para simular a criação e leitura de um JWT.
+// Em uma aplicação real, você usaria bibliotecas como 'jwt-decode' no front-end.
+
+/**
+ * Decodifica um token JWT (simulado) para extrair os dados do payload.
+ * @param {string} token O token JWT.
+ * @returns {object|null} O payload decodificado ou null em caso de erro.
+ */
+const decodeJwt = (token) => {
+  try {
+    // Um JWT é dividido em 3 partes por ".". O payload é a segunda parte.
+    const base64Url = token.split('.')[1];
+    // Substitui caracteres para que o btoa/atob padrão funcione.
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    console.error("Erro ao decodificar o token:", error);
+    return null;
+  }
+};
+
+/**
+ * Cria um token JWT simulado (sem assinatura criptográfica).
+ * @param {object} payload Os dados a serem incluídos no token.
+ * @returns {string} O token JWT simulado.
+ */
+const createMockJwt = (payload) => {
+    // Simula o header e o payload de um JWT, codificados em Base64Url.
+    const mockHeader = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' })).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+    const mockPayload = btoa(JSON.stringify(payload)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+    // Em um JWT real, haveria uma terceira parte: a assinatura.
+    return `${mockHeader}.${mockPayload}.`;
+}
+
+// Para fins de teste, este bloco simula um processo de login que salva o token
+// do técnico no localStorage.
 if (typeof window !== 'undefined') {
-  const STORAGE_KEY = 'dados_tecnico_logado';
-  const DADOS_TECNICO_PARA_TESTE = { id: 1, nome: 'Carlos Souza' };
+  const STORAGE_KEY = 'auth_token'; // Chave para o token
+  
+  // X-X-X: A variável com os dados para teste é criada aqui antes de virar token.
+  const DADOS_TECNICO_PARA_TESTE = {
+    id: 1,
+    nome: 'Carlos Souza',
+    role: 'tecnico' // Exemplo de outra informação relevante
+  };
 
-  // Verifica se o item já existe para não sobrescrevê-lo a cada recarregamento
+  // Verifica se o token já existe para não sobrescrevê-lo a cada recarregamento
   if (!localStorage.getItem(STORAGE_KEY)) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(DADOS_TECNICO_PARA_TESTE));
+    const token = createMockJwt(DADOS_TECNICO_PARA_TESTE);
+    localStorage.setItem(STORAGE_KEY, token);
   }
 }
 
-// Função para ler os dados do técnico do localStorage de forma segura.
-// Retorna um objeto padrão para evitar erros caso os dados não existam.
-const getLoggedInTecnico = () => {
-  // Verifica se o código está sendo executado no navegador
+/**
+ * Lê o token do localStorage, decodifica-o e retorna os dados do técnico.
+ * Retorna um objeto padrão para evitar erros caso o token não exista ou seja inválido.
+ */
+const getTecnicoFromToken = () => {
   if (typeof window === 'undefined') {
     return { id: null, nome: 'Carregando...' };
   }
   try {
-    const storedData = localStorage.getItem('dados_tecnico_logado');
-    if (storedData) {
-      // Converte a string JSON de volta para um objeto
-      return JSON.parse(storedData);
+    const token = localStorage.getItem('id_usuario');
+    if (token) {
+      // Decodifica o token para obter o objeto com os dados do técnico
+      const decodedData = decodeJwt(token);
+      return decodedData || { id: null, nome: 'Token inválido' };
     }
   } catch (error) {
-    console.error("Falha ao ler ou analisar os dados do técnico do localStorage:", error);
+    console.error("Falha ao ler o token do localStorage:", error);
   }
   // Retorna um valor padrão se nada for encontrado ou se ocorrer um erro
   return { id: null, nome: 'Nenhum técnico logado' };
 };
 
-// Lê os dados do técnico ao carregar o componente
-const LOGGED_IN_TECNICO = getLoggedInTecnico();
-
+// Lê e decodifica o token para obter os dados do técnico ao carregar o componente
+const LOGGED_IN_TECNICO = getTecnicoFromToken();
 
 // Configurações visuais para cada status de chamado
 const STATUS_CONFIG = {
   'pendente': { title: 'Pendente', color: '#3b82f6' },
   'em andamento': { title: 'Em Andamento', color: '#f97316' },
-  // ============================================================================
-  // --- BANNER: COLUNA 'AGUARDANDO APROVAÇÃO' DESATIVADA TEMPORARIAMENTE ---
-  // ============================================================================
-  // 'aguardando aprovação': { title: 'Aguardando Aprovação', color: '#f97316' },
   'concluído': { title: 'Concluído', color: '#16a34a' },
 };
 
