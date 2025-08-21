@@ -11,7 +11,7 @@ router.get("/getFilter", chamados.readFilterChamadosController)
 router.post("/post",  chamados.createChamadosContrroler)
 router.put("/put/:id",  chamados.updateChamadosController)
 router.put("/put",  chamados.updateChamadosControllerJson)
-router.put("/respond/:id", auth, chamados.respondChamadosController)
+router.put("/respond/:id", /*auth,*/ chamados.respondChamadosController)
 
 router.put("/atribuir/:id", /*auth,*/ chamados.atribuirChamadosController)
 

@@ -116,7 +116,17 @@ const changeStatus = async (data, id) => {
     }
 }
 
+const changeFuncao = async (data, id) => {
+    try {
+
+        update("usuarios", {funcao: data.funcao} , `id = '${id}'`)
+        return ("Usuario atualizado com sucesso")
+    } catch (err){
+        console.log("Erro ao atualizar usuarios")
+        throw err;
+    }
+}
 
 
 
-export {readAllUser, readUser, readUserEmail,   createUser, updateUser, changeStatus}
+export {readAllUser, readUser, readUserEmail,   createUser, updateUser, changeStatus, changeFuncao}

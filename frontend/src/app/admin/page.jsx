@@ -412,7 +412,7 @@ function GerenciamentoUsuarios({ usuarios, setUsuarios }) {
             const response = await fetch('http://localhost:8080/user/get');
             if (!response.ok) throw new Error('Erro ao buscar dados dos usuários');
             const data = await response.json();
-            setUsuarios(data.mensagem || []);
+            setUsuarios(data || []);
         } catch (error) {
             console.error("Falha na busca por usuários: ", error);
             toast.error("Não foi possível carregar os usuários.");
@@ -450,6 +450,7 @@ function GerenciamentoUsuarios({ usuarios, setUsuarios }) {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData),
                 });
+                console.log(formData)
                 if (!response.ok) {
                     const errorData = await response.json();
                     throw new Error(errorData.mensagem || 'Falha ao atualizar o usuário.');
