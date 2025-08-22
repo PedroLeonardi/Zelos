@@ -92,9 +92,9 @@ CREATE TABLE chamados (
 -- Inserir usuários
 INSERT INTO usuarios (nome, id_login, email, funcao)
 VALUES
-('Pedro Silva', 'P001', 'pedro@zelo.com', 'técnico'),
-('Maria Souza', 'M001', 'maria@zelo.com', 'usuário'),
-('Carlos Lima', 'C001', 'carlos@zelo.com', 'técnico');
+('MIGUEL ARTUR DA SILVA BARROS', '24250668', '24250668@educ123.sp.senai.br', 'Administrador'),
+('PEDRO HENRIQUE LEONARDI', '24250386', '24250386@educ123.sp.senai.br', 'Administrador'),
+('DAVI RODRIGUES PIRES', '24250553', '24250553@educ123.sp.senai.br', 'Administrador');
 
 -- Inserir serviços
 INSERT INTO servicos (titulo, descricao, created_by, updated_by)

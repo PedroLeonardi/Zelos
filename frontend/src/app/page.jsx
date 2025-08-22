@@ -51,6 +51,7 @@ export default function LoginPage() {
       const userRole = data.user.funcao;
 
       localStorage.setItem("id_usuario", data.user_id);
+      localStorage.setItem("funcao", data.user.funcao);
 
       // Redireciona com base na função do usuário
       switch (userRole) {
