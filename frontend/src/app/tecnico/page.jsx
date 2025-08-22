@@ -4,31 +4,20 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import styles from './tecnico.module.css';
 import Header from '../components/Header';
 
-// --- ÍCONES SVG (sem alterações) ---
+// --- ÍCONES SVG ---
 const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="currentColor" width="18" height="18"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"/></svg>;
 
-
-// --- DADOS E CONFIGURAÇÕES (MOCK DATA) ---
-// Estes dados podem ser substituídos por chamadas de API no futuro, se necessário.
-const initialServicos = { 1: 'Manutenção', 2: 'Apoio Técnico', 3: 'Limpeza', 4: 'Externo'};
-const initialUsuarios = { 1: 'Carlos Souza', 2: 'Ana Pereira', 4: 'João Silva', 5: 'Fernanda Martins', 6: 'Roberto Alves' };
-const initialPatrimonio = { 1: 'Computador do Setor X', 2: 'Patrimônio Y', 3: 'Projetor da Sala de Reunião', 101: 'Impressora 3D', 102: 'Projetor', 104: 'PC Recepção' };
-
-// Configurações visuais para cada status de chamado
+// --- CONFIGURAÇÕES GLOBAIS ---
 const STATUS_CONFIG = {
   'pendente': { title: 'Pendente', color: '#3b82f6' },
   'em andamento': { title: 'Em Andamento', color: '#f97316' },
   'concluído': { title: 'Concluído', color: '#16a34a' },
 };
 
+// --- COMPONENTES FILHOS ---
 
-// --- COMPONENTES INTERNOS ---
-// const TicketCard = ({ ticket, onOpenModal, onAtribuir, onIniciar, servicos, usuarios, patrimonios, loggedInTecnico }) => {
-//     const isPending = ticket.status === 'pendente';
-//     const isOwner = ticket.tecnico_id === loggedInTecnico.id;
-const TicketCard = ({ ticket, onOpenModal, onAtribuir, onIniciar, tecnicoId }) => {
+const TicketCard = ({ ticket, onOpenModal, onAtribuir, onIniciar, tecnicoId, servicos, usuarios, patrimonios }) => {
     const isPending = ticket.status === 'pendente';
-    // Compara o ID do chamado com o ID do técnico logado, que agora é passado como prop.
     const isOwner = ticket.tecnico_id === tecnicoId;
   
     return (
@@ -38,7 +27,7 @@ const TicketCard = ({ ticket, onOpenModal, onAtribuir, onIniciar, tecnicoId }) =
           <span className={styles.statusBadge} style={{'--status-color': STATUS_CONFIG[ticket.status]?.color}}>{STATUS_CONFIG[ticket.status]?.title}</span>
         </header>
         <h3 className={styles.ticketCard__title}>{ticket.titulo}</h3>
-        {/* DADOS DINÂMICOS */}
+        {/* Exibe dados dinâmicos carregados da API */}
         <p className={styles.ticketCard__info}><strong>Serviço:</strong> {servicos[ticket.servicos_id] || 'Não encontrado'}</p>
         <p className={styles.ticketCard__info}><strong>Usuário:</strong> {usuarios[ticket.usuario_id] || 'Não encontrado'}</p>
         <p className={styles.ticketCard__info}><strong>Patrimônio:</strong> {patrimonios[ticket.patrimonio_id] || 'N/A'}</p>
@@ -62,11 +51,6 @@ const TicketCard = ({ ticket, onOpenModal, onAtribuir, onIniciar, tecnicoId }) =
     );
 };
   
-// const ModalContent = ({ ticket, handleFinalizarChamado, handleCreateApontamento, apontamentoForm, handleApontamentoChange, apontamentos, loggedInTecnico }) => {
-//     if (!ticket) return null;
-  
-//     const isOwner = ticket.tecnico_id === loggedInTecnico.id;
-
 const ModalContent = ({ ticket, handleFinalizarChamado, handleCreateApontamento, apontamentoForm, handleApontamentoChange, apontamentos, tecnicoId }) => {
     if (!ticket) return null;
   
@@ -75,8 +59,7 @@ const ModalContent = ({ ticket, handleFinalizarChamado, handleCreateApontamento,
 
     const formatDateTime = (isoString) => {
         if (!isoString) return 'N/A';
-        const date = new Date(isoString);
-        return date.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        return new Date(isoString).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     }
 
     const formatDuration = (seconds) => {
@@ -152,36 +135,30 @@ const ModalContent = ({ ticket, handleFinalizarChamado, handleCreateApontamento,
 
 // --- PÁGINA PRINCIPAL ---
 export default function TecnicoDashboard() {
-  // --- ESTADOS DO COMPONENTE ---
-  const [chamados, setChamados] = useState([]);
+  // Estados de controle da UI
   const [isLoading, setIsLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedTicket, setSelectedTicket] = useState(null);
   const [toasters, setToasters] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('todos');
-  const [sortBy, setSortBy] = useState('recentes');
-  const [pendenteLimit, setPendenteLimit] = useState(5);
-  const [emAndamentoLimit, setEmAndamentoLimit] = useState(5);
-  const [concluidoLimit, setConcluidoLimit] = useState(5);
-
-
-  // --- NOVA LÓGICA DE AUTENTICAÇÃO ---
-  // 1. Estado para armazenar os dados do técnico logado.
-  const [tecnicoInfo, setTecnicoInfo] = useState({ id: null, nome: 'Carregando...' });
-  // --- FIM DA NOVA LÓGICA ---
-
-  const [apontamentos, setApontamentos] = useState([]);
-  const [apontamentoForm, setApontamentoForm] = useState({ descricao: '', comeco: '', fim: '' });
   
-  // --- MUDANÇA 1: ESTADOS PARA DADOS DA API ---
+  // Estados de dados
+  const [chamados, setChamados] = useState([]);
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [apontamentos, setApontamentos] = useState([]);
   const [servicos, setServicos] = useState({});
   const [usuarios, setUsuarios] = useState({});
   const [patrimonios, setPatrimonios] = useState({});
+  const [tecnicoInfo, setTecnicoInfo] = useState({ id: null, nome: 'Carregando...' });
+  
+  // Estados de formulários e filtros
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('todos');
+  const [sortBy, setSortBy] = useState('recentes');
+  const [apontamentoForm, setApontamentoForm] = useState({ descricao: '', comeco: '', fim: '' });
 
-  // --- MUDANÇA 2: LÓGICA DE AUTENTICAÇÃO SIMPLIFICADA ---
-  // Lê os dados do técnico diretamente do localStorage (salvos no login)
-  const [loggedInTecnico, setLoggedInTecnico] = useState({ id: null, nome: 'Carregando...' });
+  // Estados de paginação/limite de visualização
+  const [pendenteLimit, setPendenteLimit] = useState(5);
+  const [emAndamentoLimit, setEmAndamentoLimit] = useState(5);
+  const [concluidoLimit, setConcluidoLimit] = useState(5);
 
   const addToaster = useCallback((message, type = 'success') => {
     const id = Date.now();
@@ -189,64 +166,40 @@ export default function TecnicoDashboard() {
     setTimeout(() => setToasters(prev => prev.filter(t => t.id !== id)), 4000);
   }, []);
 
-  // --- NOVA LÓGICA DE AUTENTICAÇÃO ---
-  // 2. Efeito para buscar o ID do localStorage e depois os dados completos do técnico.
+  // Efeito 1: Busca os dados do técnico logado a partir do localStorage
   useEffect(() => {
-//     // Esta função roda apenas no navegador
-//     const id = localStorage.getItem('id');
-//     const nome = localStorage.getItem('username'); // Nome formatado salvo pelo Header
-//     if (id && nome) {
-//       setLoggedInTecnico({ id: parseInt(id, 10), nome });
-//     } else {
-//       addToaster('Falha ao verificar autenticação. Faça login novamente.', 'error');
     const fetchTecnicoData = async () => {
         const id = localStorage.getItem('id_usuario');
         if (!id) {
             setTecnicoInfo({ id: null, nome: 'Não logado' });
-            addToaster('ID do usuário não encontrado no localStorage.', 'error');
+            addToaster('ID do usuário não encontrado. Faça login novamente.', 'error');
             setIsLoading(false);
             return;
         }
-
         try {
-            // Supondo que você precise de um token de autenticação para buscar usuários
             const token = localStorage.getItem('authToken');
             const response = await fetch('http://localhost:8080/user/get', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-
             if (!response.ok) throw new Error('Falha ao buscar dados dos usuários.');
-            
-            const usuarios = await response.json();
-            const tecnicoLogado = usuarios.find(user => user.id === parseInt(id, 10));
-
+            const usersData = await response.json();
+            const tecnicoLogado = usersData.find(user => user.id === parseInt(id, 10));
             if (tecnicoLogado) {
                 setTecnicoInfo({ id: tecnicoLogado.id, nome: tecnicoLogado.nome });
             } else {
-                setTecnicoInfo({ id: parseInt(id, 10), nome: 'Nome não encontrado' });
+                setTecnicoInfo({ id: null, nome: 'ID não encontrado' });
                 addToaster('Técnico com o ID fornecido não foi encontrado.', 'error');
             }
         } catch (error) {
-            console.error(error);
-            addToaster('Erro ao carregar dados do técnico.', 'error');
-            setTecnicoInfo({ id: parseInt(id, 10), nome: 'Erro ao carregar' });
+            console.error("Erro ao carregar dados do técnico:", error);
+            addToaster(error.message, 'error');
+            setTecnicoInfo({ id: null, nome: 'Erro ao carregar' });
         }
     };
-
     fetchTecnicoData();
   }, [addToaster]);
-  // --- FIM DA NOVA LÓGICA ---
 
-  // 3. O useEffect para buscar os chamados agora DEPENDE do ID do técnico.
-  // Ele só será executado quando `tecnicoInfo.id` tiver um valor.
-  useEffect(() => {
-    if (!tecnicoInfo.id) {
-        // Se não houver ID, não faz nada. O estado de loading é controlado pelo useEffect acima.
-        return;
-    }
-  }, []);
-
-  // --- MUDANÇA 3: BUSCANDO DADOS DE USUÁRIOS, SERVIÇOS E PATRIMÔNIOS ---
+  // Efeito 2: Busca dados de suporte (serviços, usuários, patrimônios) para preencher os cards
   useEffect(() => {
     const fetchSupportData = async () => {
       try {
@@ -260,29 +213,15 @@ export default function TecnicoDashboard() {
           throw new Error('Falha ao carregar dados de suporte.');
         }
 
-        // Processa usuários: [{id, nome}] -> {id: nome}
         const usersData = await usersRes.json();
-        const usersMap = usersData.reduce((acc, user) => {
-          acc[user.id] = user.nome;
-          return acc;
-        }, {});
-        setUsuarios(usersMap);
+        setUsuarios(usersData.reduce((acc, user) => ({ ...acc, [user.id]: user.nome }), {}));
 
-        // Processa serviços: {mensagem: [{id, titulo}]} -> {id: titulo}
         const servicesData = await servicesRes.json();
-        const servicesMap = servicesData.mensagem.reduce((acc, service) => {
-          acc[service.id] = service.titulo;
-          return acc;
-        }, {});
-        setServicos(servicesMap);
-
-        // Processa patrimônios: [{id, categoria, descricao}] -> {id: "categoria - descricao"}
+        // A API de serviços retorna um objeto { mensagem: [...] }
+        setServicos(servicesData.mensagem.reduce((acc, service) => ({ ...acc, [service.id]: service.titulo }), {}));
+        
         const patrimonioData = await patrimonioRes.json();
-        const patrimonioMap = patrimonioData.reduce((acc, item) => {
-          acc[item.id] = `${item.categoria} - ${item.descricao}`;
-          return acc;
-        }, {});
-        setPatrimonios(patrimonioMap);
+        setPatrimonios(patrimonioData.reduce((acc, item) => ({ ...acc, [item.id]: `${item.n_patrimonio} - ${item.categoria}` }), {}));
 
       } catch (error) {
         console.error("Erro ao carregar dados iniciais:", error);
@@ -290,12 +229,11 @@ export default function TecnicoDashboard() {
       }
     };
     fetchSupportData();
-  }, []);
+  }, [addToaster]);
 
-
-  // --- MUDANÇA 4: BUSCAR CHAMADOS APENAS QUANDO O ID DO TÉCNICO ESTIVER DISPONÍVEL ---
+  // Efeito 3: Busca os chamados apenas quando o ID do técnico estiver definido
   useEffect(() => {
-    if (!loggedInTecnico.id) return; // Não faz nada se o ID ainda não foi carregado
+    if (!tecnicoInfo.id) return;
 
     const fetchChamados = async () => {
       setIsLoading(true);
@@ -311,10 +249,9 @@ export default function TecnicoDashboard() {
       try {
         const [pendentes, meusChamados] = await Promise.all([
           postRequest({ key: "status", value: "pendente" }),
-// -----------------------------          postRequest({ key: "tecnico_id", value: String(loggedInTecnico.id) }) // Usa o ID do estado
-          postRequest({ key: "tecnico_id", value: String(tecnicoInfo.id) }) // Usa o ID do estado
+          postRequest({ key: "tecnico_id", value: String(tecnicoInfo.id) })
         ]);
-        const allChamados = [...pendentes, ...meusChamados];
+        const allChamados = [...(pendentes || []), ...(meusChamados || [])];
         const uniqueChamados = Array.from(new Map(allChamados.map(c => [c.id, c])).values());
         setChamados(uniqueChamados);
       } catch (error) {
@@ -325,22 +262,13 @@ export default function TecnicoDashboard() {
       }
     };
     fetchChamados();
-  }, [loggedInTecnico.id]); // Dependência: Roda de novo se o ID do técnico mudar
+  }, [tecnicoInfo.id, addToaster]);
 
-  
-  // --- FUNÇÕES DE LÓGICA (maioria sem alterações, apenas usando loggedInTecnico do estado) ---
-  const addToaster = (message, type = 'success') => {
-    const id = Date.now();
-    setToasters(prev => [...prev, { id, message, type }]);
-    setTimeout(() => setToasters(prev => prev.filter(t => t.id !== id)), 4000);
-  };
-//  ---------------------------------  }, [tecnicoInfo.id, addToaster]); // Dependência adicionada
-
+  // --- FUNÇÕES DE MANIPULAÇÃO DE DADOS ---
 
   const updateChamadoStatus = async (ticketId, newStatus, extraData = {}) => {
     try {
-        // -------------------------------- const response = await fetch(`http://localhost:8080/chamados/respond/${loggedInTecnico.id}`, {
-        const response = await fetch(`http://localhost:8080/chamados/respond/${tecnicoInfo.id}`, { // Usa o ID do estado
+        const response = await fetch(`http://localhost:8080/chamados/respond/${tecnicoInfo.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ chamado_id: ticketId, status: newStatus, ...extraData }),
@@ -359,8 +287,7 @@ export default function TecnicoDashboard() {
 
   const handleSelfAssign = async (ticketId) => {
     try {
-      // ---------------------------------- const assignResponse = await fetch(`http://localhost:8080/chamados/atribuir/${loggedInTecnico.id}`, {
-
+      const assignResponse = await fetch(`http://localhost:8080/chamados/atribuir/${tecnicoInfo.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ chamado_id: ticketId }),
@@ -371,8 +298,7 @@ export default function TecnicoDashboard() {
       }
       const statusUpdateSuccessful = await updateChamadoStatus(ticketId, 'em andamento');
       if (statusUpdateSuccessful) {
-        // --------------------------------- setChamados(prev => prev.map(t => t.id === ticketId ? { ...t, tecnico_id: loggedInTecnico.id, status: 'em andamento' } : t));
-        setChamados(prev => prev.map(t => t.id === ticketId ? { ...t, tecnico_id: tecnicoInfo.id, status: 'em andamento' } : t)); // Usa o ID do estado
+        setChamados(prev => prev.map(t => t.id === ticketId ? { ...t, tecnico_id: tecnicoInfo.id, status: 'em andamento' } : t));
         addToaster(`Chamado #${ticketId} atribuído e iniciado!`, 'success');
       } else {
         throw new Error('Chamado atribuído, mas falha ao iniciar o atendimento.');
@@ -400,7 +326,7 @@ export default function TecnicoDashboard() {
         });
         if (!response.ok) throw new Error('Falha ao buscar apontamentos.');
         const data = await response.json();
-        setApontamentos(data);
+        setApontamentos(data || []);
     } catch (error) {
         console.error("Erro ao buscar apontamentos:", error);
         addToaster(error.message, 'error');
@@ -417,19 +343,16 @@ export default function TecnicoDashboard() {
         addToaster('A data de fim deve ser posterior à data de início.', 'error');
         return;
     }
-
     try {
         const response = await fetch('http://localhost:8080/apontamentos/create', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chamado_id: ticketId, tecnico_id: loggedInTecnico.id, descricao, comeco, fim }),
-           //---------------------------- body: JSON.stringify({ chamado_id: ticketId, tecnico_id: tecnicoInfo.id, descricao, comeco, fim }), // Usa o ID do estado
+            body: JSON.stringify({ chamado_id: ticketId, tecnico_id: tecnicoInfo.id, descricao, comeco, fim }),
         });
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             throw new Error(errorData.mensagem || 'Falha ao criar apontamento.');
         }
-        
         addToaster('Apontamento adicionado com sucesso!', 'success');
         setApontamentoForm({ descricao: '', comeco: '', fim: '' });
         fetchApontamentos(ticketId);
@@ -439,26 +362,25 @@ export default function TecnicoDashboard() {
     }
   };
 
-  const handleApontamentoChange = (e) => {
-    const { name, value } = e.target;
-    setApontamentoForm(prev => ({ ...prev, [name]: value }));
-  };
-
   const handleFinalizarChamado = async (e, ticketId) => {
     e.preventDefault();
     if (!apontamentoForm.descricao.trim()) {
       addToaster('A descrição é obrigatória para finalizar o chamado.', 'error');
       return;
     }
-
     const relatorioData = { relatorio: { descricao: apontamentoForm.descricao } };
     const success = await updateChamadoStatus(ticketId, 'concluído', relatorioData);
-
     if (success) {
         setChamados(prev => prev.map(t => t.id === ticketId ? { ...t, status: 'concluído', ...relatorioData } : t));
         addToaster(`Chamado #${ticketId} finalizado!`, 'success');
         handleCloseModal();
     }
+  };
+
+  // --- FUNÇÕES DE CONTROLE DA UI ---
+
+  const handleApontamentoChange = (e) => {
+    setApontamentoForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleOpenModal = (ticket) => {
@@ -476,34 +398,32 @@ export default function TecnicoDashboard() {
     setTimeout(() => setSelectedTicket(null), 300);
   };
 
+  // Lógica de filtragem e ordenação dos chamados para exibição
   const filteredAndSortedChamados = useMemo(() => {
-//    -------------------------------------- if (!loggedInTecnico.id) return [];
+    if (!tecnicoInfo.id) return [];
     
-//   --------------------------------------  let result = chamados.filter(t => t.tecnico_id === loggedInTecnico.id || t.tecnico_id === null);
-
-    let result = [...chamados];
-    if (!tecnicoInfo.id) return []; // Usa o ID do estado
+    let result = chamados.filter(t => t.tecnico_id === tecnicoInfo.id || t.tecnico_id === null);
     
-    result = result.filter(t => t.tecnico_id === tecnicoInfo.id || t.tecnico_id === null); // Usa o ID do estado
     if (statusFilter !== 'todos') {
       result = result.filter(t => t.status === statusFilter);
     }
     if (searchTerm) {
-      result = result.filter(t => t.titulo.toLowerCase().includes(searchTerm.toLowerCase()) || t.id.toString().toLowerCase().includes(searchTerm.toLowerCase()));
+      result = result.filter(t => 
+        t.titulo.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        t.id.toString().includes(searchTerm)
+      );
     }
     result.sort((a, b) => {
         if (sortBy === 'status') {
             const statusOrder = ['em andamento', 'pendente', 'concluído'];
             return statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status);
         }
-        return new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime();
+        return new Date(b.criado_em) - new Date(a.criado_em);
     });
     return result;
+  }, [chamados, searchTerm, statusFilter, sortBy, tecnicoInfo.id]);
 
- // ------------------------ }, [chamados, searchTerm, statusFilter, sortBy, loggedInTecnico.id]);
-
-  }, [chamados, searchTerm, statusFilter, sortBy, tecnicoInfo.id]); // Usa o ID do estado
-
+  // --- RENDERIZAÇÃO ---
 
   if (isLoading) {
     return (
@@ -523,7 +443,6 @@ export default function TecnicoDashboard() {
         <header className={styles.pageHeader}>
           <div>
             <h1 className={styles.pageTitle}>Painel do Técnico</h1>
-       //-----------------------------------------     <p className={styles.pageSubtitle}>Bem-vindo, <strong>{loggedInTecnico.nome}</strong>. Gerencie seus chamados aqui.</p>
             <p className={styles.pageSubtitle}>Bem-vindo, <strong>{tecnicoInfo.nome}</strong>. Gerencie seus chamados aqui.</p>
           </div>
         </header>
@@ -569,8 +488,17 @@ export default function TecnicoDashboard() {
                 <div className={styles.kanbanColumn__ticketsList}>
                   {ticketsToDisplay.length > 0 ? (
                     ticketsToDisplay.map((ticket) => (
-                      // --------------- <TicketCard key={ticket.id} ticket={ticket} onOpenModal={handleOpenModal} onAtribuir={handleSelfAssign} onIniciar={handleStartProgress} servicos={servicos} usuarios={usuarios} patrimonios={patrimonios} loggedInTecnico={loggedInTecnico} />
-                      <TicketCard key={ticket.id} ticket={ticket} onOpenModal={handleOpenModal} onAtribuir={handleSelfAssign} onIniciar={handleStartProgress} tecnicoId={tecnicoInfo.id} />
+                      <TicketCard 
+                        key={ticket.id} 
+                        ticket={ticket} 
+                        onOpenModal={handleOpenModal} 
+                        onAtribuir={handleSelfAssign} 
+                        onIniciar={handleStartProgress} 
+                        tecnicoId={tecnicoInfo.id}
+                        servicos={servicos}
+                        usuarios={usuarios}
+                        patrimonios={patrimonios}
+                      />
                     ))
                   ) : (
                     <div className={styles.kanbanColumn__empty}><p>Nenhum chamado aqui.</p></div>
@@ -599,8 +527,8 @@ export default function TecnicoDashboard() {
             </header>
             <main className={styles.modalBody}>
                 <div className={styles.modalInfoGrid}>
-                    <p><strong>Serviço:</strong> {servicos[selectedTicket.servicos_id]}</p>
-                    <p><strong>Usuário:</strong> {usuarios[selectedTicket.usuario_id]}</p>
+                    <p><strong>Serviço:</strong> {servicos[selectedTicket.servicos_id] || 'N/A'}</p>
+                    <p><strong>Usuário:</strong> {usuarios[selectedTicket.usuario_id] || 'N/A'}</p>
                     <p><strong>Patrimônio:</strong> {patrimonios[selectedTicket.patrimonio_id] || 'N/A'}</p>
                     <p><strong>Descrição Inicial:</strong> {selectedTicket.descricao}</p>
                     <p><strong>Status:</strong> <span className={styles.statusBadge} style={{'--status-color': STATUS_CONFIG[selectedTicket.status]?.color}}>{STATUS_CONFIG[selectedTicket.status]?.title}</span></p>
@@ -613,7 +541,6 @@ export default function TecnicoDashboard() {
                 apontamentoForm={apontamentoForm} 
                 handleApontamentoChange={handleApontamentoChange}
                 apontamentos={apontamentos}
-               // ------------------- loggedInTecnico={loggedInTecnico}
                 tecnicoId={tecnicoInfo.id}
               />
             </main>
