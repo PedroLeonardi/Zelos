@@ -1,4 +1,4 @@
-   #drop database zelo;
+   drop database zelo;
    create database zelo;
    use zelo;
    
@@ -45,18 +45,22 @@ CREATE TABLE chamados (
     id INT AUTO_INCREMENT PRIMARY KEY,
     titulo VARCHAR(255) NOT NULL,
     descricao TEXT,
-    patrimonio_id INT,                  
+    -- MODIFICADO 1: O tipo de dado agora é VARCHAR(15) para corresponder a 'n_patrimonio'
+    patrimonio_id VARCHAR(15),                  
     servicos_id INT NOT NULL,
     tecnico_id INT,                     
     usuario_id INT NOT NULL,            
     status ENUM('inativo','pendente', 'em andamento','aguardando aprovação', 'concluído') DEFAULT 'pendente',
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (patrimonio_id) REFERENCES patrimonio(id),
+    
+    -- MODIFICADO 2: A chave estrangeira agora referencia a coluna correta (n_patrimonio)
+    FOREIGN KEY (patrimonio_id) REFERENCES patrimonio(n_patrimonio),
+    
     FOREIGN KEY (servicos_id) REFERENCES servicos(id),
     FOREIGN KEY (tecnico_id) REFERENCES usuarios(id),
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
-);
+    );
 
 
     -- Criação da tabela apontamentos
@@ -97,7 +101,8 @@ INSERT INTO servicos (titulo, descricao, created_by, updated_by)
 VALUES
 ('manutencao', 'Reparo de equipamentos', 1, 1),
 ('apoio_tecnico', 'Suporte ao usuário', 1, 1),
-('limpeza', 'Limpeza interna', 1, 1);
+('limpeza', 'Limpeza interna', 1, 1),
+('externo', 'Serviços Gerais em areas externas Externos', 1, 1);
 
 -- Inserir patrimônio
 INSERT INTO patrimonio (categoria, descricao, aquisicao, n_patrimonio)
@@ -109,9 +114,9 @@ VALUES
 -- Inserir chamados
 INSERT INTO chamados (titulo, descricao, patrimonio_id, servicos_id, tecnico_id, usuario_id, status)
 VALUES
-('Troca de memória RAM', 'Computador com problemas de desempenho', 1, 1, 1, 2, 'pendente'),
-('Configuração de impressora', 'Instalação de drivers e rede', 2, 2, 3, 2, 'em andamento'),
-('Manutenção no projetor', 'Troca de lâmpada', 3, 1, 1, 2, 'aguardando aprovação');
+('Troca de memória RAM', 'Computador com problemas de desempenho', 'PAT001', 1, 2, 1, 'pendente'),
+('Configuração de impressora', 'Instalação de drivers e rede', 'PAT002', 2, 3, 2, 'em andamento'),
+('Manutenção no projetor', 'Troca de lâmpada', 'PAT003', 1, 1, 2, 'aguardando aprovação');
 
 
 
@@ -129,22 +134,20 @@ SELECT
     c.atualizado_em     AS data_fechamento,
     s.titulo            AS tipo_chamado,
     pa.n_patrimonio     AS numero_patrimonio,
-    -- Dados do Técnico (quem está resolvendo)
     tecnico.id          AS tecnico_id,
     tecnico.nome        AS tecnico_nome,
-    -- Dados do Solicitante (quem criou o chamado)
     solicitante.id      AS solicitante_id,
-    solicitante.nome    AS solicitante_nome -- <--- CAMPO ADICIONADO!
+    solicitante.nome    AS solicitante_nome
 FROM 
     chamados c
 LEFT JOIN 
     servicos s ON c.servicos_id = s.id
 LEFT JOIN 
-    patrimonio pa ON c.patrimonio_id = pa.id
+    patrimonio pa ON c.patrimonio_id = pa.n_patrimonio
 LEFT JOIN 
-    usuarios tecnico ON c.tecnico_id = tecnico.id -- Join para o técnico
+    usuarios tecnico ON c.tecnico_id = tecnico.id 
 LEFT JOIN 
-    usuarios solicitante ON c.usuario_id = solicitante.id; -- Join para o solicitante
+    usuarios solicitante ON c.usuario_id = solicitante.id; 
 
 
 

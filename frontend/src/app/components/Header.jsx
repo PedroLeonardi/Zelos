@@ -42,6 +42,9 @@ export default function Header({ username = 'Usuário' }) {
 
   const handleLogout = () => {
     // Idealmente, aqui você limparia a sessão/token do usuário
+    console.log('Limpando dados locais...');
+    localStorage.removeItem('id_usuario');
+    localStorage.removeItem('authToken');
     console.log('Logging out...');
     router.push('/');
   };
