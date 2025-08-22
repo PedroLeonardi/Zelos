@@ -35,11 +35,21 @@ const servicosDisponiveis = [
     { id: 3, nome: 'Limpeza' },
     { id: 4, nome: 'Serviço Externo' },
 ];
-const STATUS_OPCOES = ['pendente', 'em análise', 'aguardando', 'concluído', 'inativo'];
+
+const STATUS_OPCOES = ['pendente', 'em andamento', 'aguardando aprovação', 'concluído', 'inativo'];
+
 const ITEMS_PER_PAGE = 5;
 const FUNCOES = ['Administrador', 'Técnico', 'Usuário'];
 
 // --- FUNÇÕES E COMPONENTES AUXILIARES ---
+
+const normalizeStatusForClassName = (status = '') => {
+    return status
+        .toLowerCase()
+        .normalize("NFD") 
+        .replace(/[\u0300-\u036f]/g, "") 
+        .replace(/\s+/g, ''); 
+};
 
 // Hook customizado para gerenciar a lógica de paginação
 function usePagination(items, itemsPerPage) {
@@ -84,7 +94,6 @@ const StatCard = ({ title, value, type = 'default' }) => (
 
 // --- COMPONENTE PRINCIPAL ---
 export default function AdminPage() {
-    // O REGISTRO DO CHART.JS FOI MOVIDO PARA AQUI
     ChartJS.register(
         CategoryScale,
         LinearScale,
@@ -102,7 +111,6 @@ export default function AdminPage() {
     const [chamados, setChamados] = useState([]);
     const [usuarios, setUsuarios] = useState([]);
 
-    // Busca usuários para usar em outras abas
     const fetchUsuarios = useCallback(async () => {
         try {
             const response = await fetch('http://localhost:8080/user/get');
@@ -149,7 +157,6 @@ export default function AdminPage() {
                 </main>
             </div>
         </>
-
     );
 }
 
@@ -158,17 +165,17 @@ const ChamadoStats = ({ chamados }) => {
     const stats = useMemo(() => ({
         total: chamados.filter(c => c.status !== 'inativo').length,
         pendente: chamados.filter(c => c.status === 'pendente').length,
-        emAndamento: chamados.filter(c => c.status === 'em análise').length,
+        emAndamento: chamados.filter(c => c.status === 'em andamento').length,
         concluido: chamados.filter(c => c.status === 'concluído').length,
-        aguardando: chamados.filter(c => c.status === 'aguardando').length,
+        aguardando: chamados.filter(c => c.status === 'aguardando aprovação').length,
     }), [chamados]);
 
     return (
         <section className={styles.statsGrid}>
             <StatCard title="Total de Chamados" value={stats.total} />
             <StatCard title="Pendentes" value={stats.pendente} type="pending" />
-            <StatCard title="Em Análise" value={stats.emAndamento} type="inProgress" />
-            <StatCard title="Aguardando" value={stats.aguardando} type="approved" />
+            <StatCard title="Em Andamento" value={stats.emAndamento} type="inProgress" />
+            <StatCard title="Aguardando Aprovação" value={stats.aguardando} type="approved" />
             <StatCard title="Concluídos" value={stats.concluido} type="completed" />
         </section>
     );
@@ -209,7 +216,7 @@ const ChamadoTable = ({ paginatedChamados, handleSort, sortConfig, openModal, ha
             <span>Ações</span>
         </div>
         {paginatedChamados.map(c => {
-            const statusClassName = c.status.replace(/\s+/g, '').replace('çã', 'ca');
+            const statusClassName = normalizeStatusForClassName(c.status);
             return (
                 <div className={styles.tableRow} key={c.id}>
                     <span data-label="ID"><strong>#{c.id}</strong><small>{new Date(c.criado_em).toLocaleDateString()}</small></span>
@@ -238,13 +245,10 @@ function GerenciamentoChamados({ chamados, setChamados, usuarios }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [adminUserId, setAdminUserId] = useState(null);
 
-    // --- ALTERAÇÃO APLICADA ---
-    // Pega o ID do administrador do localStorage ao carregar o componente.
     useEffect(() => {
-        const id = localStorage.getItem('id_usuario');
+        const id = localStorage.getItem('id');
         setAdminUserId(id);
     }, []);
-    // --- FIM DA ALTERAÇÃO ---
 
     const fetchChamados = useCallback(async () => {
         try {
@@ -305,14 +309,11 @@ function GerenciamentoChamados({ chamados, setChamados, usuarios }) {
         const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
         const isCreating = !editingChamado;
         
-        // --- ALTERAÇÃO APLICADA ---
-        // Valida se o ID do admin foi carregado antes de criar um chamado.
         if (isCreating && !adminUserId) {
             toast.error("ID do administrador não encontrado. Recarregue a página.");
             setIsSubmitting(false);
             return;
         }
-        // --- FIM DA ALTERAÇÃO ---
 
         try {
             if (formData.patrimonio_id) {
@@ -332,16 +333,19 @@ function GerenciamentoChamados({ chamados, setChamados, usuarios }) {
             const endpoint = isCreating ? 'http://localhost:8080/chamados/post' : 'http://localhost:8080/chamados/put';
             const method = isCreating ? 'POST' : 'PUT';
             
-            // --- ALTERAÇÃO APLICADA ---
-            // O corpo da requisição agora usa o `adminUserId` para criar novos chamados.
+            // ============================================================================
+            // --- ALTERAÇÃO APLICADA AQUI ---
+            // Adiciona o campo 'status' ao corpo da requisição de CRIAÇÃO.
+            // ============================================================================
             const body = isCreating 
               ? {
                   titulo: formData.titulo,
                   descricao: formData.descricao,
                   patrimonio_id: formData.patrimonio_id || null,
                   servicos_id: formData.servicos_id,
-                  usuario_id: adminUserId, // ID do admin logado
-                  tecnico_id: formData.tecnico_id || null
+                  usuario_id: adminUserId, 
+                  tecnico_id: formData.tecnico_id || null,
+                  status: 'em andamento' // <-- STATUS DEFINIDO AQUI
                 }
               : { 
                   ...formData,
@@ -349,7 +353,7 @@ function GerenciamentoChamados({ chamados, setChamados, usuarios }) {
                   patrimonio_id: formData.patrimonio_id || null,
                   tecnico_id: formData.tecnico_id || null,
               };
-            // --- FIM DA ALTERAÇÃO ---
+            // ============================================================================
 
             const response = await fetch(endpoint, { method, headers, body: JSON.stringify(body) });
             const result = await response.json();
@@ -406,7 +410,6 @@ function GerenciamentoChamados({ chamados, setChamados, usuarios }) {
 }
 
 // --- 2. GERENCIAMENTO DE USUÁRIOS ---
-// (Nenhuma alteração nesta seção)
 function GerenciamentoUsuarios({ usuarios, setUsuarios, fetchUsuarios }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -455,7 +458,6 @@ function GerenciamentoUsuarios({ usuarios, setUsuarios, fetchUsuarios }) {
 }
 
 // --- 3. GERENCIAMENTO DE PATRIMÔNIOS ---
-// (Nenhuma alteração nesta seção)
 function GerenciamentoPatrimonios() {
     const [patrimonios, setPatrimonios] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -519,16 +521,15 @@ function GerenciamentoPatrimonios() {
 
 
 // --- 4. GRÁFICOS E RELATÓRIOS ---
-// (Nenhuma alteração nesta seção)
 function GraficosView({ chamados }) {
   const [activeChart, setActiveChart] = useState('chamadosPorMes');
 
   const STATUS_COLORS = {
-    pendente: '#ffc107',
-    'em análise': '#0d6efd',
-    'aguardando': '#6f42c1',
-    concluído: '#198754',
-    inativo: '#6c757d',
+    'pendente': '#ffc107',
+    'em andamento': '#0d6efd',
+    'aguardando aprovação': '#6f42c1',
+    'concluído': '#198754',
+    'inativo': '#6c757d',
   };
 
   const defaultChartOptions = {
@@ -668,13 +669,10 @@ function ChamadoModal({ chamado, onClose, onSave, tecnicos, usuarios, servicos, 
     
     const handleSubmit = (e) => {
         e.preventDefault();
-        // --- ALTERAÇÃO APLICADA ---
-        // A validação do `usuario_id` foi removida da criação.
         if (!formData.titulo || !formData.servicos_id) {
             toast.error('Título e Tipo de Serviço são obrigatórios!');
             return;
         }
-        // --- FIM DA ALTERAÇÃO ---
         onSave(formData);
     };
 
@@ -697,8 +695,6 @@ function ChamadoModal({ chamado, onClose, onSave, tecnicos, usuarios, servicos, 
                             <div className={styles.formGroup}><label>Tipo de Serviço</label><select name="servicos_id" value={formData.servicos_id} onChange={handleChange} required><option value="" disabled>Selecione...</option>{servicos.map(s => <option key={s.id} value={s.id}>{s.nome}</option>)}</select></div>
                         </div>
                         
-                        {/* --- ALTERAÇÃO APLICADA --- */}
-                        {/* O campo Solicitante só aparece no modo de edição. */}
                         <div className={styles.formRow}>
                             {isCreating ? (
                                 <div className={styles.formGroup} style={{ flexBasis: '100%' }}>
@@ -713,7 +709,6 @@ function ChamadoModal({ chamado, onClose, onSave, tecnicos, usuarios, servicos, 
                                     <div className={styles.formGroup}>
                                         <label>Solicitante</label>
                                         <select name="usuario_id" value={formData.usuario_id} disabled>
-                                            {/* Garante que o usuário do chamado seja exibido */}
                                             {<option value={chamado.usuario_id}>{chamado.solicitante_nome}</option>}
                                         </select>
                                     </div>
@@ -727,7 +722,6 @@ function ChamadoModal({ chamado, onClose, onSave, tecnicos, usuarios, servicos, 
                                 </>
                             )}
                         </div>
-                        {/* --- FIM DA ALTERAÇÃO --- */}
 
                         {!isCreating && <div className={styles.formGroup}><label>Status</label><select name="status" value={formData.status} onChange={handleChange}>{STATUS_OPCOES.map(s => <option key={s} value={s}>{s}</option>)}</select></div>}
                     </div>

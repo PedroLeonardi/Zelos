@@ -17,6 +17,12 @@ const createChamados = ( data) => {
         } else {
             tecnico_id1 = data.tecnico_id
         }
+        let status
+        if (!data.status){
+            status = "pendente"
+        } else {
+            status = data.status
+        }
 
         return create("chamados", {
             titulo: data.titulo,
@@ -24,7 +30,8 @@ const createChamados = ( data) => {
             patrimonio_id: data.patrimonio_id,
             servicos_id: data.servicos_id,
             tecnico_id: tecnico_id1,
-            usuario_id: data.usuario_id
+            usuario_id: data.usuario_id,
+            status: status
         })
 
     } catch (err) {
