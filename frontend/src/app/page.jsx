@@ -45,6 +45,7 @@ export default function LoginPage() {
       // 2. Salva o ID do usuário também no localStorage.
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('id', data.user.id); // Salvando o ID do usuário
+      localStorage.setItem('username', data.user.nome);
       // --- FIM DA ALTERAÇÃO ---
 
       const userRole = data.user.funcao;

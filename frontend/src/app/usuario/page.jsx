@@ -23,12 +23,14 @@ const TYPE_CONFIG = {
   externo:        { label: 'Serviço Externo', color: '#ef4444' }
 };
 
-const TYPE_TO_ID_MAP = {
-  manutencao: "1",
-  apoio_tecnico: "2",
-  limpeza: "3",
-  externo: "4"
-};
+// --- O OBJETO ABAIXO SERÁ REMOVIDO E SUBSTITUÍDO PELA LÓGICA DA API ---
+// const TYPE_TO_ID_MAP = {
+//   manutencao: "1",
+//   apoio_tecnico: "2",
+//   limpeza: "3",
+//   externo: "4"
+// };
+
 
 // --- COMPONENTES INTERNOS ---
 
@@ -199,36 +201,59 @@ export default function UsuarioDashboard() {
   const [modal, setModal] = useState({ isOpen: false, type: null, data: null });
   const [toasters, setToasters] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // --- MUDANÇA 1: CRIAR UM ESTADO PARA GUARDAR O MAPEAMENTO DE SERVIÇOS ---
+  const [serviceTypeMap, setServiceTypeMap] = useState({});
 
-  // ============================================================================
-  // --- BANNER: CORREÇÃO APLICADA ---
-  // A lógica agora lê e define o ID do usuário usando a chave 'id_usuario'
-  // do localStorage, conforme solicitado.
-  // ============================================================================
   useEffect(() => {
     // Para fins de teste, define 'id_usuario' como "1" se não existir.
-    if (!localStorage.getItem('id_usuario')) {
-        localStorage.setItem('id_usuario', "1"); 
+    // Em produção, este ID deve ser salvo no localStorage durante o login.
+    if (!localStorage.getItem('id')) {
+        localStorage.setItem('id', "2"); // Usando a chave 'id' que já usamos antes
     }
     
-    // Lê o ID da chave correta ('id_usuario').
-    const id = localStorage.getItem('id_usuario'); 
-    setLoggedInUserId(id); // Armazena o ID no estado do componente.
+    // Lê o ID da chave correta.
+    const id = localStorage.getItem('id'); 
+    setLoggedInUserId(id);
   }, []);
-  // --- FIM DA ALTERAÇÃO ---
+
+  // --- MUDANÇA 2: BUSCAR OS SERVIÇOS DA API QUANDO O COMPONENTE CARREGAR ---
+  useEffect(() => {
+    const fetchServicesAndCreateMap = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/servico/get');
+        if (!response.ok) {
+          throw new Error('Falha ao buscar serviços da API');
+        }
+        const data = await response.json();
+        
+        // Cria o mapa dinamicamente a partir da resposta da API
+        const newMap = data.mensagem.reduce((acc, service) => {
+          // acc['manutencao'] = 1
+          // acc['apoio_tecnico'] = 2
+          acc[service.titulo] = service.id;
+          return acc;
+        }, {});
+        
+        setServiceTypeMap(newMap);
+      } catch (error) {
+        console.error("Erro ao criar mapa de serviços:", error);
+        addToaster("Não foi possível carregar os tipos de serviço.", "error");
+      }
+    };
+
+    fetchServicesAndCreateMap();
+  }, []); // O array vazio [] garante que isso rode apenas uma vez.
 
   const fetchTickets = useCallback(async () => {
     if (!LOGGED_IN_USER_ID) return [];
     
-    // --- ALTERAÇÃO APLICADA AQUI ---
-    // Pega o token do localStorage e o adiciona no cabeçalho da requisição.
     const token = localStorage.getItem('authToken');
     const apiUrl = 'http://localhost:8080/chamados/getFilter';
     const headers = { 
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}` 
     };
-    // --- FIM DA ALTERAÇÃO ---
     
     const body = { "key": "usuario_id", "value": LOGGED_IN_USER_ID };
     const response = await fetch(apiUrl, { method: "POST", headers, body: JSON.stringify(body) });
@@ -237,14 +262,12 @@ export default function UsuarioDashboard() {
   }, [LOGGED_IN_USER_ID]);
 
   const fetchServiceById = async (id) => {
-    // --- ALTERAÇÃO APLICADA AQUI ---
     const token = localStorage.getItem('authToken');
     const apiUrl = `http://localhost:8080/servico/getFilter/`;
     const headers = { 
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}` 
     };
-    // --- FIM DA ALTERAÇÃO ---
 
     const body = { "key": "id", "value": `${id}` };
     const response = await fetch(apiUrl, { method: "POST", headers, body: JSON.stringify(body) });
@@ -257,14 +280,12 @@ export default function UsuarioDashboard() {
   };
 
   const createTicketApi = async (payload) => {
-    // --- ALTERAÇÃO APLICADA AQUI ---
     const token = localStorage.getItem('authToken');
     const apiUrl = 'http://localhost:8080/chamados/post';
     const headers = { 
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     };
-    // --- FIM DA ALTERAÇÃO ---
 
     const response = await fetch(apiUrl, { method: 'POST', headers, body: JSON.stringify(payload) });
     if (!response.ok) {
@@ -331,13 +352,22 @@ export default function UsuarioDashboard() {
       if (formData.patrimony && !/^\d+$/.test(formData.patrimony)) {
           throw new Error('O número do patrimônio é inválido. Digite apenas números.');
       }
+      
+      // --- MUDANÇA 3: USAR O MAPA DINÂMICO DO ESTADO ---
+      // Em vez de TYPE_TO_ID_MAP, usamos o serviceTypeMap que foi preenchido pela API.
+      const serviceId = serviceTypeMap[formData.type];
+      if (!serviceId) {
+        throw new Error('Tipo de serviço selecionado é inválido. Tente novamente.');
+      }
+      
       const payload = {
         titulo: formData.title,
         descricao: formData.description,
         patrimonio_id: formData.patrimony || null, 
-        servicos_id: TYPE_TO_ID_MAP[formData.type], 
+        servicos_id: serviceId, // <-- USA O ID BUSCADO DA API
         usuario_id: LOGGED_IN_USER_ID
       };
+
       const newTicketFromApi = await createTicketApi(payload);
       addToaster(`Chamado #${newTicketFromApi.id || ''} criado com sucesso!`, 'success');
       handleCloseModal();
