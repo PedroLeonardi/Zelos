@@ -1,83 +1,17 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import styles from './tecnico.module.css';
-import Header from '../components/Header'; // <-- Lembre-se de ter este componente
+import Header from '../components/Header';
 
 // --- ÍCONES SVG ---
 const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="currentColor" width="18" height="18"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"/></svg>;
 
-// --- DADOS E CONFIGURAÇÕES ---
-const initialServicos = { 1: 'Manutenção Corretiva', 2: 'Manutenção Preventiva', 3: 'Instalação/Configuração' };
+// --- DADOS E CONFIGURAÇÕES (MOCK DATA) ---
+// Estes dados podem ser substituídos por chamadas de API no futuro, se necessário.
+const initialServicos = { 1: 'Manutenção', 2: 'Apoio Técnico', 3: 'Limpeza', 4: 'Externo'};
 const initialUsuarios = { 1: 'Carlos Souza', 2: 'Ana Pereira', 4: 'João Silva', 5: 'Fernanda Martins', 6: 'Roberto Alves' };
 const initialPatrimonio = { 1: 'Computador do Setor X', 2: 'Patrimônio Y', 3: 'Projetor da Sala de Reunião', 101: 'Impressora 3D', 102: 'Projetor', 104: 'PC Recepção' };
-
-// --- LÓGICA PARA TÉCNICO LOGADO VIA TOKEN JWT (CORRIGIDO) ---
-
-// Funções auxiliares para criar e ler um JWT.
-const decodeJwt = (token) => {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    return JSON.parse(jsonPayload);
-  } catch (error) {
-    console.error("Erro ao decodificar o token:", error);
-    return null;
-  }
-};
-
-const createMockJwt = (payload) => {
-    const mockHeader = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' })).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-    const mockPayload = btoa(JSON.stringify(payload)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-    return `${mockHeader}.${mockPayload}.`;
-}
-
-// Para fins de teste, este bloco salva o token do técnico no localStorage.
-if (typeof window !== 'undefined') {
-  // CORREÇÃO: Usando uma chave dedicada para o token do técnico.
-  const STORAGE_KEY = 'tecnico_auth_token';
-  
-  const DADOS_TECNICO_PARA_TESTE = {
-    id: 1,
-    nome: 'Carlos Souza',
-    role: 'tecnico'
-  };
-
-  // Salva o token na chave correta.
-  if (!localStorage.getItem(STORAGE_KEY)) {
-    const token = createMockJwt(DADOS_TECNICO_PARA_TESTE);
-    localStorage.setItem(STORAGE_KEY, token);
-  }
-}
-
-/**
- * Lê o token do técnico do localStorage, decodifica-o e retorna os dados.
- */
-const getTecnicoFromToken = () => {
-  if (typeof window === 'undefined') {
-    return { id: null, nome: 'Carregando...' };
-  }
-  try {
-    // CORREÇÃO: Lendo da chave correta 'tecnico_auth_token'.
-    const token = localStorage.getItem('tecnico_auth_token');
-    
-    // Se o token existir, ele PRECISA ser decodificado.
-    if (token) {
-      const decodedData = decodeJwt(token);
-      return decodedData || { id: null, nome: 'Token inválido' };
-    }
-  } catch (error) {
-    console.error("Falha ao ler o token do técnico do localStorage:", error);
-  }
-  return { id: null, nome: 'Nenhum técnico logado' };
-};
-
-// Lê e decodifica o token para obter os dados do técnico ao carregar o componente
-const LOGGED_IN_TECNICO = getTecnicoFromToken();
-
 
 // Configurações visuais para cada status de chamado
 const STATUS_CONFIG = {
@@ -87,9 +21,10 @@ const STATUS_CONFIG = {
 };
 
 // --- COMPONENTES INTERNOS ---
-const TicketCard = ({ ticket, onOpenModal, onAtribuir, onIniciar }) => {
+const TicketCard = ({ ticket, onOpenModal, onAtribuir, onIniciar, tecnicoId }) => {
     const isPending = ticket.status === 'pendente';
-    const isOwner = ticket.tecnico_id === LOGGED_IN_TECNICO.id;
+    // Compara o ID do chamado com o ID do técnico logado, que agora é passado como prop.
+    const isOwner = ticket.tecnico_id === tecnicoId;
   
     return (
       <article className={styles.ticketCard} tabIndex={0}>
@@ -121,10 +56,10 @@ const TicketCard = ({ ticket, onOpenModal, onAtribuir, onIniciar }) => {
     );
 };
   
-const ModalContent = ({ ticket, handleFinalizarChamado, handleCreateApontamento, apontamentoForm, handleApontamentoChange, apontamentos }) => {
+const ModalContent = ({ ticket, handleFinalizarChamado, handleCreateApontamento, apontamentoForm, handleApontamentoChange, apontamentos, tecnicoId }) => {
     if (!ticket) return null;
   
-    const isOwner = ticket.tecnico_id === LOGGED_IN_TECNICO.id;
+    const isOwner = ticket.tecnico_id === tecnicoId;
     const isInProgress = ticket.status === 'em andamento';
 
     const formatDateTime = (isoString) => {
@@ -227,6 +162,11 @@ export default function TecnicoDashboard() {
   const [emAndamentoLimit, setEmAndamentoLimit] = useState(5);
   const [concluidoLimit, setConcluidoLimit] = useState(5);
 
+  // --- NOVA LÓGICA DE AUTENTICAÇÃO ---
+  // 1. Estado para armazenar os dados do técnico logado.
+  const [tecnicoInfo, setTecnicoInfo] = useState({ id: null, nome: 'Carregando...' });
+  // --- FIM DA NOVA LÓGICA ---
+
   const [apontamentos, setApontamentos] = useState([]);
   const [apontamentoForm, setApontamentoForm] = useState({
       descricao: '',
@@ -234,10 +174,58 @@ export default function TecnicoDashboard() {
       fim: ''
   });
 
+  const addToaster = useCallback((message, type = 'success') => {
+    const id = Date.now();
+    setToasters(prev => [...prev, { id, message, type }]);
+    setTimeout(() => setToasters(prev => prev.filter(t => t.id !== id)), 4000);
+  }, []);
+
+  // --- NOVA LÓGICA DE AUTENTICAÇÃO ---
+  // 2. Efeito para buscar o ID do localStorage e depois os dados completos do técnico.
   useEffect(() => {
-    if (!LOGGED_IN_TECNICO.id) {
-        setIsLoading(false);
-        addToaster('ID do técnico não encontrado. Faça o login novamente.', 'error');
+    const fetchTecnicoData = async () => {
+        const id = localStorage.getItem('id_usuario');
+        if (!id) {
+            setTecnicoInfo({ id: null, nome: 'Não logado' });
+            addToaster('ID do usuário não encontrado no localStorage.', 'error');
+            setIsLoading(false);
+            return;
+        }
+
+        try {
+            // Supondo que você precise de um token de autenticação para buscar usuários
+            const token = localStorage.getItem('authToken');
+            const response = await fetch('http://localhost:8080/user/get', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!response.ok) throw new Error('Falha ao buscar dados dos usuários.');
+            
+            const usuarios = await response.json();
+            const tecnicoLogado = usuarios.find(user => user.id === parseInt(id, 10));
+
+            if (tecnicoLogado) {
+                setTecnicoInfo({ id: tecnicoLogado.id, nome: tecnicoLogado.nome });
+            } else {
+                setTecnicoInfo({ id: parseInt(id, 10), nome: 'Nome não encontrado' });
+                addToaster('Técnico com o ID fornecido não foi encontrado.', 'error');
+            }
+        } catch (error) {
+            console.error(error);
+            addToaster('Erro ao carregar dados do técnico.', 'error');
+            setTecnicoInfo({ id: parseInt(id, 10), nome: 'Erro ao carregar' });
+        }
+    };
+
+    fetchTecnicoData();
+  }, [addToaster]);
+  // --- FIM DA NOVA LÓGICA ---
+
+  // 3. O useEffect para buscar os chamados agora DEPENDE do ID do técnico.
+  // Ele só será executado quando `tecnicoInfo.id` tiver um valor.
+  useEffect(() => {
+    if (!tecnicoInfo.id) {
+        // Se não houver ID, não faz nada. O estado de loading é controlado pelo useEffect acima.
         return;
     }
 
@@ -255,7 +243,7 @@ export default function TecnicoDashboard() {
       try {
         const [pendentes, meusChamados] = await Promise.all([
           postRequest({ key: "status", value: "pendente" }),
-          postRequest({ key: "tecnico_id", value: String(LOGGED_IN_TECNICO.id) })
+          postRequest({ key: "tecnico_id", value: String(tecnicoInfo.id) }) // Usa o ID do estado
         ]);
         const allChamados = [...pendentes, ...meusChamados];
         const uniqueChamados = Array.from(new Map(allChamados.map(c => [c.id, c])).values());
@@ -268,19 +256,13 @@ export default function TecnicoDashboard() {
       }
     };
     fetchChamados();
-  }, []);
-
-  const addToaster = (message, type = 'success') => {
-    const id = Date.now();
-    setToasters(prev => [...prev, { id, message, type }]);
-    setTimeout(() => setToasters(prev => prev.filter(t => t.id !== id)), 4000);
-  };
+  }, [tecnicoInfo.id, addToaster]); // Dependência adicionada
 
   const handleSortChange = (e) => setSortBy(e.target.value);
 
   const updateChamadoStatus = async (ticketId, newStatus, extraData = {}) => {
     try {
-        const response = await fetch(`http://localhost:8080/chamados/respond/${LOGGED_IN_TECNICO.id}`, {
+        const response = await fetch(`http://localhost:8080/chamados/respond/${tecnicoInfo.id}`, { // Usa o ID do estado
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ chamado_id: ticketId, status: newStatus, ...extraData }),
@@ -299,7 +281,7 @@ export default function TecnicoDashboard() {
 
   const handleSelfAssign = async (ticketId) => {
     try {
-      const assignResponse = await fetch(`http://localhost:8080/chamados/atribuir/${LOGGED_IN_TECNICO.id}`, {
+      const assignResponse = await fetch(`http://localhost:8080/chamados/atribuir/${tecnicoInfo.id}`, { // Usa o ID do estado
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ chamado_id: ticketId }),
@@ -310,7 +292,7 @@ export default function TecnicoDashboard() {
       }
       const statusUpdateSuccessful = await updateChamadoStatus(ticketId, 'em andamento');
       if (statusUpdateSuccessful) {
-        setChamados(prev => prev.map(t => t.id === ticketId ? { ...t, tecnico_id: LOGGED_IN_TECNICO.id, status: 'em andamento' } : t));
+        setChamados(prev => prev.map(t => t.id === ticketId ? { ...t, tecnico_id: tecnicoInfo.id, status: 'em andamento' } : t)); // Usa o ID do estado
         addToaster(`Chamado #${ticketId} atribuído e iniciado!`, 'success');
       } else {
         throw new Error('Chamado atribuído, mas falha ao iniciar o atendimento.');
@@ -360,7 +342,7 @@ export default function TecnicoDashboard() {
         const response = await fetch('http://localhost:8080/apontamentos/create', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chamado_id: ticketId, tecnico_id: LOGGED_IN_TECNICO.id, descricao, comeco, fim }),
+            body: JSON.stringify({ chamado_id: ticketId, tecnico_id: tecnicoInfo.id, descricao, comeco, fim }), // Usa o ID do estado
         });
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
@@ -415,9 +397,9 @@ export default function TecnicoDashboard() {
 
   const filteredAndSortedChamados = useMemo(() => {
     let result = [...chamados];
-    if (!LOGGED_IN_TECNICO.id) return [];
+    if (!tecnicoInfo.id) return []; // Usa o ID do estado
     
-    result = result.filter(t => t.tecnico_id === LOGGED_IN_TECNICO.id || t.tecnico_id === null);
+    result = result.filter(t => t.tecnico_id === tecnicoInfo.id || t.tecnico_id === null); // Usa o ID do estado
     if (statusFilter !== 'todos') {
       result = result.filter(t => t.status === statusFilter);
     }
@@ -432,14 +414,14 @@ export default function TecnicoDashboard() {
         return new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime();
     });
     return result;
-  }, [chamados, searchTerm, statusFilter, sortBy]);
+  }, [chamados, searchTerm, statusFilter, sortBy, tecnicoInfo.id]); // Usa o ID do estado
 
   if (isLoading) {
     return (
       <>
         <Header />
         <div className={styles.container}>
-          <div className={styles.loadingState}><h2>Carregando chamados...</h2></div>
+          <div className={styles.loadingState}><h2>Carregando...</h2></div>
         </div>
       </>
     );
@@ -452,7 +434,7 @@ export default function TecnicoDashboard() {
         <header className={styles.pageHeader}>
           <div>
             <h1 className={styles.pageTitle}>Painel do Técnico</h1>
-            <p className={styles.pageSubtitle}>Bem-vindo, <strong>{LOGGED_IN_TECNICO.nome}</strong>. Gerencie seus chamados aqui.</p>
+            <p className={styles.pageSubtitle}>Bem-vindo, <strong>{tecnicoInfo.nome}</strong>. Gerencie seus chamados aqui.</p>
           </div>
         </header>
 
@@ -466,7 +448,6 @@ export default function TecnicoDashboard() {
                     <option value="todos">Todos os Status</option>
                     <option value="pendente">Pendente</option>
                     <option value="em andamento">Em Andamento</option>
-                    <option value="aguardando aprovação">Aguardando Aprovação</option>
                     <option value="concluído">Concluído</option>
                 </select>
                 <select value={sortBy} onChange={handleSortChange}>
@@ -498,7 +479,7 @@ export default function TecnicoDashboard() {
                 <div className={styles.kanbanColumn__ticketsList}>
                   {ticketsToDisplay.length > 0 ? (
                     ticketsToDisplay.map((ticket) => (
-                      <TicketCard key={ticket.id} ticket={ticket} onOpenModal={handleOpenModal} onAtribuir={handleSelfAssign} onIniciar={handleStartProgress} />
+                      <TicketCard key={ticket.id} ticket={ticket} onOpenModal={handleOpenModal} onAtribuir={handleSelfAssign} onIniciar={handleStartProgress} tecnicoId={tecnicoInfo.id} />
                     ))
                   ) : (
                     <div className={styles.kanbanColumn__empty}><p>Nenhum chamado aqui.</p></div>
@@ -541,6 +522,7 @@ export default function TecnicoDashboard() {
                 apontamentoForm={apontamentoForm} 
                 handleApontamentoChange={handleApontamentoChange}
                 apontamentos={apontamentos}
+                tecnicoId={tecnicoInfo.id}
               />
             </main>
           </div>
