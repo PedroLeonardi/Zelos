@@ -1,13 +1,20 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import styles from './tecnico.module.css';
-import Header from '../components/Header'; // <-- Lembre-se de ter este componente
+import Header from '../components/Header';
 
 // --- ÍCONES SVG (sem alterações) ---
 const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="currentColor" width="18" height="18"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"/></svg>;
 
-// --- CONFIGURAÇÕES VISUAIS (sem alterações) ---
+
+// --- DADOS E CONFIGURAÇÕES (MOCK DATA) ---
+// Estes dados podem ser substituídos por chamadas de API no futuro, se necessário.
+const initialServicos = { 1: 'Manutenção', 2: 'Apoio Técnico', 3: 'Limpeza', 4: 'Externo'};
+const initialUsuarios = { 1: 'Carlos Souza', 2: 'Ana Pereira', 4: 'João Silva', 5: 'Fernanda Martins', 6: 'Roberto Alves' };
+const initialPatrimonio = { 1: 'Computador do Setor X', 2: 'Patrimônio Y', 3: 'Projetor da Sala de Reunião', 101: 'Impressora 3D', 102: 'Projetor', 104: 'PC Recepção' };
+
+// Configurações visuais para cada status de chamado
 const STATUS_CONFIG = {
   'pendente': { title: 'Pendente', color: '#3b82f6' },
   'em andamento': { title: 'Em Andamento', color: '#f97316' },
@@ -16,9 +23,13 @@ const STATUS_CONFIG = {
 
 
 // --- COMPONENTES INTERNOS ---
-const TicketCard = ({ ticket, onOpenModal, onAtribuir, onIniciar, servicos, usuarios, patrimonios, loggedInTecnico }) => {
+// const TicketCard = ({ ticket, onOpenModal, onAtribuir, onIniciar, servicos, usuarios, patrimonios, loggedInTecnico }) => {
+//     const isPending = ticket.status === 'pendente';
+//     const isOwner = ticket.tecnico_id === loggedInTecnico.id;
+const TicketCard = ({ ticket, onOpenModal, onAtribuir, onIniciar, tecnicoId }) => {
     const isPending = ticket.status === 'pendente';
-    const isOwner = ticket.tecnico_id === loggedInTecnico.id;
+    // Compara o ID do chamado com o ID do técnico logado, que agora é passado como prop.
+    const isOwner = ticket.tecnico_id === tecnicoId;
   
     return (
       <article className={styles.ticketCard} tabIndex={0}>
@@ -51,10 +62,15 @@ const TicketCard = ({ ticket, onOpenModal, onAtribuir, onIniciar, servicos, usua
     );
 };
   
-const ModalContent = ({ ticket, handleFinalizarChamado, handleCreateApontamento, apontamentoForm, handleApontamentoChange, apontamentos, loggedInTecnico }) => {
+// const ModalContent = ({ ticket, handleFinalizarChamado, handleCreateApontamento, apontamentoForm, handleApontamentoChange, apontamentos, loggedInTecnico }) => {
+//     if (!ticket) return null;
+  
+//     const isOwner = ticket.tecnico_id === loggedInTecnico.id;
+
+const ModalContent = ({ ticket, handleFinalizarChamado, handleCreateApontamento, apontamentoForm, handleApontamentoChange, apontamentos, tecnicoId }) => {
     if (!ticket) return null;
   
-    const isOwner = ticket.tecnico_id === loggedInTecnico.id;
+    const isOwner = ticket.tecnico_id === tecnicoId;
     const isInProgress = ticket.status === 'em andamento';
 
     const formatDateTime = (isoString) => {
@@ -148,6 +164,13 @@ export default function TecnicoDashboard() {
   const [pendenteLimit, setPendenteLimit] = useState(5);
   const [emAndamentoLimit, setEmAndamentoLimit] = useState(5);
   const [concluidoLimit, setConcluidoLimit] = useState(5);
+
+
+  // --- NOVA LÓGICA DE AUTENTICAÇÃO ---
+  // 1. Estado para armazenar os dados do técnico logado.
+  const [tecnicoInfo, setTecnicoInfo] = useState({ id: null, nome: 'Carregando...' });
+  // --- FIM DA NOVA LÓGICA ---
+
   const [apontamentos, setApontamentos] = useState([]);
   const [apontamentoForm, setApontamentoForm] = useState({ descricao: '', comeco: '', fim: '' });
   
@@ -160,14 +183,66 @@ export default function TecnicoDashboard() {
   // Lê os dados do técnico diretamente do localStorage (salvos no login)
   const [loggedInTecnico, setLoggedInTecnico] = useState({ id: null, nome: 'Carregando...' });
 
+  const addToaster = useCallback((message, type = 'success') => {
+    const id = Date.now();
+    setToasters(prev => [...prev, { id, message, type }]);
+    setTimeout(() => setToasters(prev => prev.filter(t => t.id !== id)), 4000);
+  }, []);
+
+  // --- NOVA LÓGICA DE AUTENTICAÇÃO ---
+  // 2. Efeito para buscar o ID do localStorage e depois os dados completos do técnico.
   useEffect(() => {
-    // Esta função roda apenas no navegador
-    const id = localStorage.getItem('id');
-    const nome = localStorage.getItem('username'); // Nome formatado salvo pelo Header
-    if (id && nome) {
-      setLoggedInTecnico({ id: parseInt(id, 10), nome });
-    } else {
-      addToaster('Falha ao verificar autenticação. Faça login novamente.', 'error');
+//     // Esta função roda apenas no navegador
+//     const id = localStorage.getItem('id');
+//     const nome = localStorage.getItem('username'); // Nome formatado salvo pelo Header
+//     if (id && nome) {
+//       setLoggedInTecnico({ id: parseInt(id, 10), nome });
+//     } else {
+//       addToaster('Falha ao verificar autenticação. Faça login novamente.', 'error');
+    const fetchTecnicoData = async () => {
+        const id = localStorage.getItem('id_usuario');
+        if (!id) {
+            setTecnicoInfo({ id: null, nome: 'Não logado' });
+            addToaster('ID do usuário não encontrado no localStorage.', 'error');
+            setIsLoading(false);
+            return;
+        }
+
+        try {
+            // Supondo que você precise de um token de autenticação para buscar usuários
+            const token = localStorage.getItem('authToken');
+            const response = await fetch('http://localhost:8080/user/get', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!response.ok) throw new Error('Falha ao buscar dados dos usuários.');
+            
+            const usuarios = await response.json();
+            const tecnicoLogado = usuarios.find(user => user.id === parseInt(id, 10));
+
+            if (tecnicoLogado) {
+                setTecnicoInfo({ id: tecnicoLogado.id, nome: tecnicoLogado.nome });
+            } else {
+                setTecnicoInfo({ id: parseInt(id, 10), nome: 'Nome não encontrado' });
+                addToaster('Técnico com o ID fornecido não foi encontrado.', 'error');
+            }
+        } catch (error) {
+            console.error(error);
+            addToaster('Erro ao carregar dados do técnico.', 'error');
+            setTecnicoInfo({ id: parseInt(id, 10), nome: 'Erro ao carregar' });
+        }
+    };
+
+    fetchTecnicoData();
+  }, [addToaster]);
+  // --- FIM DA NOVA LÓGICA ---
+
+  // 3. O useEffect para buscar os chamados agora DEPENDE do ID do técnico.
+  // Ele só será executado quando `tecnicoInfo.id` tiver um valor.
+  useEffect(() => {
+    if (!tecnicoInfo.id) {
+        // Se não houver ID, não faz nada. O estado de loading é controlado pelo useEffect acima.
+        return;
     }
   }, []);
 
@@ -236,7 +311,8 @@ export default function TecnicoDashboard() {
       try {
         const [pendentes, meusChamados] = await Promise.all([
           postRequest({ key: "status", value: "pendente" }),
-          postRequest({ key: "tecnico_id", value: String(loggedInTecnico.id) }) // Usa o ID do estado
+// -----------------------------          postRequest({ key: "tecnico_id", value: String(loggedInTecnico.id) }) // Usa o ID do estado
+          postRequest({ key: "tecnico_id", value: String(tecnicoInfo.id) }) // Usa o ID do estado
         ]);
         const allChamados = [...pendentes, ...meusChamados];
         const uniqueChamados = Array.from(new Map(allChamados.map(c => [c.id, c])).values());
@@ -258,10 +334,13 @@ export default function TecnicoDashboard() {
     setToasters(prev => [...prev, { id, message, type }]);
     setTimeout(() => setToasters(prev => prev.filter(t => t.id !== id)), 4000);
   };
+//  ---------------------------------  }, [tecnicoInfo.id, addToaster]); // Dependência adicionada
+
 
   const updateChamadoStatus = async (ticketId, newStatus, extraData = {}) => {
     try {
-        const response = await fetch(`http://localhost:8080/chamados/respond/${loggedInTecnico.id}`, {
+        // -------------------------------- const response = await fetch(`http://localhost:8080/chamados/respond/${loggedInTecnico.id}`, {
+        const response = await fetch(`http://localhost:8080/chamados/respond/${tecnicoInfo.id}`, { // Usa o ID do estado
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ chamado_id: ticketId, status: newStatus, ...extraData }),
@@ -280,7 +359,8 @@ export default function TecnicoDashboard() {
 
   const handleSelfAssign = async (ticketId) => {
     try {
-      const assignResponse = await fetch(`http://localhost:8080/chamados/atribuir/${loggedInTecnico.id}`, {
+      // ---------------------------------- const assignResponse = await fetch(`http://localhost:8080/chamados/atribuir/${loggedInTecnico.id}`, {
+
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ chamado_id: ticketId }),
@@ -291,7 +371,8 @@ export default function TecnicoDashboard() {
       }
       const statusUpdateSuccessful = await updateChamadoStatus(ticketId, 'em andamento');
       if (statusUpdateSuccessful) {
-        setChamados(prev => prev.map(t => t.id === ticketId ? { ...t, tecnico_id: loggedInTecnico.id, status: 'em andamento' } : t));
+        // --------------------------------- setChamados(prev => prev.map(t => t.id === ticketId ? { ...t, tecnico_id: loggedInTecnico.id, status: 'em andamento' } : t));
+        setChamados(prev => prev.map(t => t.id === ticketId ? { ...t, tecnico_id: tecnicoInfo.id, status: 'em andamento' } : t)); // Usa o ID do estado
         addToaster(`Chamado #${ticketId} atribuído e iniciado!`, 'success');
       } else {
         throw new Error('Chamado atribuído, mas falha ao iniciar o atendimento.');
@@ -342,6 +423,7 @@ export default function TecnicoDashboard() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ chamado_id: ticketId, tecnico_id: loggedInTecnico.id, descricao, comeco, fim }),
+           //---------------------------- body: JSON.stringify({ chamado_id: ticketId, tecnico_id: tecnicoInfo.id, descricao, comeco, fim }), // Usa o ID do estado
         });
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
@@ -395,10 +477,14 @@ export default function TecnicoDashboard() {
   };
 
   const filteredAndSortedChamados = useMemo(() => {
-    if (!loggedInTecnico.id) return [];
+//    -------------------------------------- if (!loggedInTecnico.id) return [];
     
-    let result = chamados.filter(t => t.tecnico_id === loggedInTecnico.id || t.tecnico_id === null);
+//   --------------------------------------  let result = chamados.filter(t => t.tecnico_id === loggedInTecnico.id || t.tecnico_id === null);
 
+    let result = [...chamados];
+    if (!tecnicoInfo.id) return []; // Usa o ID do estado
+    
+    result = result.filter(t => t.tecnico_id === tecnicoInfo.id || t.tecnico_id === null); // Usa o ID do estado
     if (statusFilter !== 'todos') {
       result = result.filter(t => t.status === statusFilter);
     }
@@ -413,14 +499,18 @@ export default function TecnicoDashboard() {
         return new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime();
     });
     return result;
-  }, [chamados, searchTerm, statusFilter, sortBy, loggedInTecnico.id]);
+
+ // ------------------------ }, [chamados, searchTerm, statusFilter, sortBy, loggedInTecnico.id]);
+
+  }, [chamados, searchTerm, statusFilter, sortBy, tecnicoInfo.id]); // Usa o ID do estado
+
 
   if (isLoading) {
     return (
       <>
         <Header />
         <div className={styles.container}>
-          <div className={styles.loadingState}><h2>Carregando chamados...</h2></div>
+          <div className={styles.loadingState}><h2>Carregando...</h2></div>
         </div>
       </>
     );
@@ -433,7 +523,8 @@ export default function TecnicoDashboard() {
         <header className={styles.pageHeader}>
           <div>
             <h1 className={styles.pageTitle}>Painel do Técnico</h1>
-            <p className={styles.pageSubtitle}>Bem-vindo, <strong>{loggedInTecnico.nome}</strong>. Gerencie seus chamados aqui.</p>
+       //-----------------------------------------     <p className={styles.pageSubtitle}>Bem-vindo, <strong>{loggedInTecnico.nome}</strong>. Gerencie seus chamados aqui.</p>
+            <p className={styles.pageSubtitle}>Bem-vindo, <strong>{tecnicoInfo.nome}</strong>. Gerencie seus chamados aqui.</p>
           </div>
         </header>
 
@@ -478,7 +569,8 @@ export default function TecnicoDashboard() {
                 <div className={styles.kanbanColumn__ticketsList}>
                   {ticketsToDisplay.length > 0 ? (
                     ticketsToDisplay.map((ticket) => (
-                      <TicketCard key={ticket.id} ticket={ticket} onOpenModal={handleOpenModal} onAtribuir={handleSelfAssign} onIniciar={handleStartProgress} servicos={servicos} usuarios={usuarios} patrimonios={patrimonios} loggedInTecnico={loggedInTecnico} />
+                      // --------------- <TicketCard key={ticket.id} ticket={ticket} onOpenModal={handleOpenModal} onAtribuir={handleSelfAssign} onIniciar={handleStartProgress} servicos={servicos} usuarios={usuarios} patrimonios={patrimonios} loggedInTecnico={loggedInTecnico} />
+                      <TicketCard key={ticket.id} ticket={ticket} onOpenModal={handleOpenModal} onAtribuir={handleSelfAssign} onIniciar={handleStartProgress} tecnicoId={tecnicoInfo.id} />
                     ))
                   ) : (
                     <div className={styles.kanbanColumn__empty}><p>Nenhum chamado aqui.</p></div>
@@ -521,7 +613,8 @@ export default function TecnicoDashboard() {
                 apontamentoForm={apontamentoForm} 
                 handleApontamentoChange={handleApontamentoChange}
                 apontamentos={apontamentos}
-                loggedInTecnico={loggedInTecnico}
+               // ------------------- loggedInTecnico={loggedInTecnico}
+                tecnicoId={tecnicoInfo.id}
               />
             </main>
           </div>

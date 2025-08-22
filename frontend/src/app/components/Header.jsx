@@ -56,6 +56,11 @@ export default function Header() {
 
   // <-- MUDANÇA 3: Função de logout aprimorada.
   const handleLogout = () => {
+
+    // Idealmente, aqui você limparia a sessão/token do usuário
+    console.log('Limpando dados locais...');
+    localStorage.removeItem('id_usuario');
+    localStorage.removeItem('authToken');
     console.log('Logging out...');
     
     // Limpa todos os dados do usuário do navegador.
