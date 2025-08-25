@@ -5,7 +5,6 @@ import styles from "./page.module.css";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { useRouter } from "next/navigation";
 
-// Componente para o spinner de carregamento
 const LoadingSpinner = () => <div className={styles.spinner}></div>;
 
 export default function LoginPage() {
@@ -40,20 +39,15 @@ export default function LoginPage() {
         throw new Error(data.error || "Falha na autenticação. Verifique suas credenciais.");
       }
 
-      // --- ALTERAÇÃO APLICADA AQUI ---
-      // 1. Salva o token recebido da API no localStorage.
-      // 2. Salva o ID do usuário também no localStorage.
       localStorage.setItem('authToken', data.token);
-      localStorage.setItem('id', data.user.id); // Salvando o ID do usuário
+      localStorage.setItem('id', data.user.id); 
       localStorage.setItem('username', data.user.nome);
-      // --- FIM DA ALTERAÇÃO ---
 
       const userRole = data.user.funcao;
 
       localStorage.setItem("id_usuario", data.user_id);
       localStorage.setItem("funcao", data.user.funcao);
 
-      // Redireciona com base na função do usuário
       switch (userRole) {
         case "Administrador":
           router.push("/admin");

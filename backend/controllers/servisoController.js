@@ -22,7 +22,6 @@ const updateServicosController = async (req, res) => {
     }
 }
 
-
 const readFilterServicosController = async (req,res) =>{
     try {
         return res.status(200).json( await readFilterServicos(req.body))

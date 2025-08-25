@@ -3,7 +3,6 @@ import {read, readAll, deleteRecord, create, update} from "../config/database.js
 
 const createApontamento = (data) => {
     try {
-        // As colunas `id`, `duracao` e `criado_em` são geradas automaticamente pelo banco de dados.
         return create("apontamentos", {
             chamado_id: data.chamado_id,
             tecnico_id: data.tecnico_id,
@@ -29,12 +28,4 @@ const readFilterApontamentos = (filter) => {
 };
 
 
-// --- EXPORTS ATUALIZADOS ---
-// Adicionadas as novas funções de apontamentos.
-export {
-
-    
-    // Novas Funções de Apontamentos
-    createApontamento,
-    readFilterApontamentos
-};
+export {createApontamento, readFilterApontamentos };

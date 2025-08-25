@@ -333,10 +333,6 @@ function GerenciamentoChamados({ chamados, setChamados, usuarios }) {
             const endpoint = isCreating ? 'http://localhost:8080/chamados/post' : 'http://localhost:8080/chamados/put';
             const method = isCreating ? 'POST' : 'PUT';
             
-            // ============================================================================
-            // --- ALTERAÇÃO APLICADA AQUI ---
-            // Adiciona o campo 'status' ao corpo da requisição de CRIAÇÃO.
-            // ============================================================================
             const body = isCreating 
               ? {
                   titulo: formData.titulo,
@@ -345,7 +341,7 @@ function GerenciamentoChamados({ chamados, setChamados, usuarios }) {
                   servicos_id: formData.servicos_id,
                   usuario_id: adminUserId, 
                   tecnico_id: formData.tecnico_id || null,
-                  status: 'em andamento' // <-- STATUS DEFINIDO AQUI
+                  status: 'em andamento' 
                 }
               : { 
                   ...formData,
@@ -353,7 +349,6 @@ function GerenciamentoChamados({ chamados, setChamados, usuarios }) {
                   patrimonio_id: formData.patrimonio_id || null,
                   tecnico_id: formData.tecnico_id || null,
               };
-            // ============================================================================
 
             const response = await fetch(endpoint, { method, headers, body: JSON.stringify(body) });
             const result = await response.json();

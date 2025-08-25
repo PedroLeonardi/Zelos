@@ -6,13 +6,10 @@ const createChamadosContrroler = async (req, res) => {
         try {
             const data = await readFilterChamados({ key: "patrimonio_id", value: req.body.patrimonio_id })
             const encontrados = data.filter(item => item.patrimonio_id == req.body.patrimonio_id)
-            console.log("ENCONTRADO ----------------------", encontrados)
             if (encontrados.length === 0 || !encontrados.some(item => item.status === "pendente")) {
-                console.log("DEU BOM -------------------------------------------------")
                 await createChamados(req.body);
                 return res.status(201).json({ mensagem: "Chamado criado com sucesso" });
             } else {
-                console.log("DEU RUIM -------------------------------------------------")
                 return res.status(400).json({ mensagem: "Erro ao criar Chamado, chamado com numero de patrimonio já aberto" });
             }
 
@@ -27,7 +24,6 @@ const createChamadosContrroler = async (req, res) => {
     };
 };
 
-//---------------------------------------------------------------------------------------------------------------------------------------------------------
 const updateChamadosController = async (req, res) => {
     try {
 
@@ -61,8 +57,6 @@ const updateChamadosController = async (req, res) => {
 const updateChamadosControllerJson = async (req, res) => {
     try {
         const chamadoData = req.body;
-        console.log(chamadoData)
-        // Validação: Garante que o ID foi enviado no corpo da requisição.
         if (!chamadoData || !chamadoData.id) {
             return res.status(400).json({ mensagem: "O 'id' do chamado é obrigatório no corpo da requisição." });
         }
@@ -90,7 +84,6 @@ const updateChamadosControllerJson = async (req, res) => {
 
 const readFilterChamadosController = async (req, res) => {
     try {
-        console.log(req.body, "--CONTROLER----------------------------------------------------")
         return res.status(200).json(await readFilterChamados(req.body))
     } catch (err) {
         console.error("Erro ao Ler meus Chamdos: ", err)
@@ -151,24 +144,7 @@ const respondChamadosController = async (req, res) => {
     }
 }
 
-// const readFilterChamadosController = async (req, res) => {
-//     try {
-//         return res.status(200).json(await readFilterChamados(req.body))
-//     } catch (err) {
-//         console.error("Erro ao Ler meus Chamdos: ", err)
-//         return res.status(400).json({ mensagem: "Erro ao ler meus chamados" })
-//     }
 
-// };
-// const readAllChamadosController = async (req, res) => {
-//     try {
-
-//         return res.status(200).json(await readAllChamados())
-//     } catch (err) {
-//         console.error("Erro ao Ler meus Chamdos: ", err)
-//         return res.status(400).json({ mensagem: "Erro ao ler meus chamados" })
-//     }
-// };
 
 export default{createChamadosContrroler, atribuirChamadosController, readFilterChamadosController, readAllChamadosController, updateChamadosController, respondChamadosController,updateChamadosControllerJson}
 

@@ -3,7 +3,6 @@ import { readUser, createUser, readUserEmail } from "../models/authModelTeste.js
 const readUserController = async (req, res) => {
     try {
         const id = req.id_user;
-        console.log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", id)
         const data = await readUser(id); 
 
         if (!data) {

@@ -3,7 +3,6 @@ import user from "../controllers/relatorioController.js"
 import auth from "../middlewares/authMiddleware.js"
 
 const router = express.Router();
-// auth,
 
 
 

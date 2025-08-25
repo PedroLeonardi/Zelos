@@ -1,7 +1,5 @@
 import { readFilterRelatorio, readAllRelatorio, readFilterBetweenRelatorio} from "../models/relatorioModel.js"
 
-
-
 const readFilterRelatorioController = async (req, res) => {
     try {
       const { key, value } = req.body; 

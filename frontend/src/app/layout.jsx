@@ -1,8 +1,6 @@
-// /src/app/layout.js
 
 import './globals.css';
 
-// Metadata pode ser adicionada aqui
 export const metadata = {
   title: 'Dashboard SENAI',
   description: 'Sistema de Gerenciamento de Chamados',

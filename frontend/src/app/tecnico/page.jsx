@@ -4,10 +4,8 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import styles from './tecnico.module.css';
 import Header from '../components/Header';
 
-// --- ÍCONES SVG ---
 const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="currentColor" width="18" height="18"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"/></svg>;
 
-// --- CONFIGURAÇÕES GLOBAIS ---
 const STATUS_CONFIG = {
   'pendente': { title: 'Pendente', color: '#3b82f6' },
   'em andamento': { title: 'Em Andamento', color: '#f97316' },
@@ -133,9 +131,7 @@ const ModalContent = ({ ticket, handleFinalizarChamado, handleCreateApontamento,
     );
 };
 
-// --- PÁGINA PRINCIPAL ---
 export default function TecnicoDashboard() {
-  // Estados de controle da UI
   const [isLoading, setIsLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [toasters, setToasters] = useState([]);
@@ -166,7 +162,6 @@ export default function TecnicoDashboard() {
     setTimeout(() => setToasters(prev => prev.filter(t => t.id !== id)), 4000);
   }, []);
 
-  // Efeito 1: Busca os dados do técnico logado a partir do localStorage
   useEffect(() => {
     const fetchTecnicoData = async () => {
         const id = localStorage.getItem('id_usuario');
@@ -199,7 +194,6 @@ export default function TecnicoDashboard() {
     fetchTecnicoData();
   }, [addToaster]);
 
-  // Efeito 2: Busca dados de suporte (serviços, usuários, patrimônios) para preencher os cards
   useEffect(() => {
     const fetchSupportData = async () => {
       try {
@@ -217,7 +211,6 @@ export default function TecnicoDashboard() {
         setUsuarios(usersData.reduce((acc, user) => ({ ...acc, [user.id]: user.nome }), {}));
 
         const servicesData = await servicesRes.json();
-        // A API de serviços retorna um objeto { mensagem: [...] }
         setServicos(servicesData.mensagem.reduce((acc, service) => ({ ...acc, [service.id]: service.titulo }), {}));
         
         const patrimonioData = await patrimonioRes.json();
@@ -231,7 +224,6 @@ export default function TecnicoDashboard() {
     fetchSupportData();
   }, [addToaster]);
 
-  // Efeito 3: Busca os chamados apenas quando o ID do técnico estiver definido
   useEffect(() => {
     if (!tecnicoInfo.id) return;
 
@@ -263,8 +255,6 @@ export default function TecnicoDashboard() {
     };
     fetchChamados();
   }, [tecnicoInfo.id, addToaster]);
-
-  // --- FUNÇÕES DE MANIPULAÇÃO DE DADOS ---
 
   const updateChamadoStatus = async (ticketId, newStatus, extraData = {}) => {
     try {
@@ -377,7 +367,6 @@ export default function TecnicoDashboard() {
     }
   };
 
-  // --- FUNÇÕES DE CONTROLE DA UI ---
 
   const handleApontamentoChange = (e) => {
     setApontamentoForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -398,7 +387,6 @@ export default function TecnicoDashboard() {
     setTimeout(() => setSelectedTicket(null), 300);
   };
 
-  // Lógica de filtragem e ordenação dos chamados para exibição
   const filteredAndSortedChamados = useMemo(() => {
     if (!tecnicoInfo.id) return [];
     
@@ -423,7 +411,6 @@ export default function TecnicoDashboard() {
     return result;
   }, [chamados, searchTerm, statusFilter, sortBy, tecnicoInfo.id]);
 
-  // --- RENDERIZAÇÃO ---
 
   if (isLoading) {
     return (

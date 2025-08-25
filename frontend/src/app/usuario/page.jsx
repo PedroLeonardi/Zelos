@@ -1,18 +1,12 @@
 'use client';
 
-
-
-
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import styles from './usuario.module.css';
 import Header from '../components/Header';
 
-// --- ÍCONES ---
 const PlusIcon = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>;
 const SpinnerIcon = () => <svg className={styles.spinner} viewBox="0 0 50 50"><circle className={styles.spinnerPath} cx="25" cy="25" r="20" fill="none" strokeWidth="5"></circle></svg>;
 
-// --- CONFIGURAÇÃO CENTRALIZADA ---
 const STATUS_CONFIG = {
   Resolvido:   { label: 'Resolvido', color: '#16a34a' },
   'Em Análise': { label: 'Em Análise', color: '#f59e0b' },
@@ -27,16 +21,6 @@ const TYPE_CONFIG = {
   externo:        { label: 'Serviço Externo', color: '#ef4444' }
 };
 
-// --- O OBJETO ABAIXO SERÁ REMOVIDO E SUBSTITUÍDO PELA LÓGICA DA API ---
-// const TYPE_TO_ID_MAP = {
-//   manutencao: "1",
-//   apoio_tecnico: "2",
-//   limpeza: "3",
-//   externo: "4"
-// };
-
-
-// --- COMPONENTES INTERNOS ---
 
 const TicketCard = ({ ticket, onViewDetails }) => {
   const statusInfo = STATUS_CONFIG[ticket.status] || { color: '#6b7280' };
@@ -197,7 +181,6 @@ const EmptyState = ({ onOpenModal }) => (
     </div>
 );
 
-// --- PÁGINA PRINCIPAL ---
 export default function UsuarioDashboard() {
   const [LOGGED_IN_USER_ID, setLoggedInUserId] = useState(null);
   const [tickets, setTickets] = useState([]);
@@ -206,22 +189,17 @@ export default function UsuarioDashboard() {
   const [toasters, setToasters] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // --- MUDANÇA 1: CRIAR UM ESTADO PARA GUARDAR O MAPEAMENTO DE SERVIÇOS ---
   const [serviceTypeMap, setServiceTypeMap] = useState({});
 
   useEffect(() => {
-    // Para fins de teste, define 'id_usuario' como "1" se não existir.
-    // Em produção, este ID deve ser salvo no localStorage durante o login.
     if (!localStorage.getItem('id')) {
-        localStorage.setItem('id', "2"); // Usando a chave 'id' que já usamos antes
+        localStorage.setItem('id', "2"); 
     }
     
-    // Lê o ID da chave correta.
     const id = localStorage.getItem('id'); 
     setLoggedInUserId(id);
   }, []);
 
-  // --- MUDANÇA 2: BUSCAR OS SERVIÇOS DA API QUANDO O COMPONENTE CARREGAR ---
   useEffect(() => {
     const fetchServicesAndCreateMap = async () => {
       try {
@@ -231,10 +209,8 @@ export default function UsuarioDashboard() {
         }
         const data = await response.json();
         
-        // Cria o mapa dinamicamente a partir da resposta da API
         const newMap = data.mensagem.reduce((acc, service) => {
-          // acc['manutencao'] = 1
-          // acc['apoio_tecnico'] = 2
+
           acc[service.titulo] = service.id;
           return acc;
         }, {});
@@ -247,7 +223,7 @@ export default function UsuarioDashboard() {
     };
 
     fetchServicesAndCreateMap();
-  }, []); // O array vazio [] garante que isso rode apenas uma vez.
+  }, []); 
 
   const fetchTickets = useCallback(async () => {
     if (!LOGGED_IN_USER_ID) return [];
@@ -357,8 +333,6 @@ export default function UsuarioDashboard() {
           throw new Error('O número do patrimônio é inválido. Digite apenas números.');
       }
       
-      // --- MUDANÇA 3: USAR O MAPA DINÂMICO DO ESTADO ---
-      // Em vez de TYPE_TO_ID_MAP, usamos o serviceTypeMap que foi preenchido pela API.
       const serviceId = serviceTypeMap[formData.type];
       if (!serviceId) {
         throw new Error('Tipo de serviço selecionado é inválido. Tente novamente.');
@@ -368,7 +342,7 @@ export default function UsuarioDashboard() {
         titulo: formData.title,
         descricao: formData.description,
         patrimonio_id: formData.patrimony || null, 
-        servicos_id: serviceId, // <-- USA O ID BUSCADO DA API
+        servicos_id: serviceId, 
         usuario_id: LOGGED_IN_USER_ID
       };
 

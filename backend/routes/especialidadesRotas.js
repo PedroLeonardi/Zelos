@@ -2,7 +2,7 @@
 
 import express from "express";
 import especialidades from "../controllers/especialidadesController.js";
-import auth from "../middlewares/authMiddleware.js"; // Se for usar autenticação
+import auth from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 

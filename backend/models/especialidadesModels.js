@@ -1,10 +1,6 @@
-// models/especialidadesModel.js
-
 import { readAll, deleteRecord, create } from "../config/database.js";
 
-/**
- * Lê todas as especialidades da tabela.
- */
+
 const readAllEspecialidades = () => {
     try {
         return readAll("especialidades");
@@ -14,10 +10,7 @@ const readAllEspecialidades = () => {
     }
 };
 
-/**
- * Filtra especialidades com base em uma chave e valor (ex: por id_tecnico).
- * @param {{key: string, value: string|number}} filter - O objeto de filtro.
- */
+
 const readFilterEspecialidades = (filter) => {
     try {
         const whereClause = `${filter.key} = '${filter.value}'`;
@@ -28,13 +21,9 @@ const readFilterEspecialidades = (filter) => {
     }
 };
 
-/**
- * Cria uma nova associação entre um técnico e um serviço.
- * @param {{id_servicos: number, id_tecnico: number}} data - Os dados para a nova especialidade.
- */
+
 const createEspecialidade = (data) => {
     try {
-        // Validação para garantir que os campos necessários foram fornecidos
         if (!data.id_servicos || !data.id_tecnico) {
             throw new Error("id_servicos e id_tecnico são obrigatórios.");
         }
@@ -48,10 +37,7 @@ const createEspecialidade = (data) => {
     }
 };
 
-/**
- * Deleta uma especialidade pelo seu ID.
- * @param {number} id - O ID da especialidade a ser deletada.
- */
+
 const deleteEspecialidade = (id) => {
     try {
         return deleteRecord("especialidades", `id = '${id}'`);
@@ -61,9 +47,4 @@ const deleteEspecialidade = (id) => {
     }
 };
 
-export {
-    readAllEspecialidades,
-    readFilterEspecialidades,
-    createEspecialidade,
-    deleteEspecialidade
-};
+export {readAllEspecialidades,readFilterEspecialidades,createEspecialidade,deleteEspecialidade};

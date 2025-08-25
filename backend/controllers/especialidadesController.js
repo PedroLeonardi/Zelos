@@ -1,5 +1,3 @@
-// controllers/especialidadesController.js
-
 import {
     createEspecialidade,
     readAllEspecialidades,
@@ -11,12 +9,11 @@ const createEspecialidadeController = async (req, res) => {
     const { id_servicos, id_tecnico } = req.body;
 
     try {
-        // Regra de negócio: Verifica se a especialidade já existe para evitar duplicatas
         const especialidadesTecnico = await readFilterEspecialidades({ key: "id_tecnico", value: id_tecnico });
         const jaExiste = especialidadesTecnico.some(esp => esp.id_servicos == id_servicos);
 
         if (jaExiste) {
-            return res.status(409).json({ mensagem: "Este técnico já possui essa especialidade." }); // 409 Conflict
+            return res.status(409).json({ mensagem: "Este técnico já possui essa especialidade." }); 
         }
 
         await createEspecialidade({ id_servicos, id_tecnico });
@@ -56,10 +53,9 @@ const deleteEspecialidadeController = async (req, res) => {
     try {
         const { id } = req.params;
         
-        // Verifica se a especialidade existe antes de deletar
         const resultado = await readFilterEspecialidades({ key: "id", value: id });
         if (resultado.length === 0) {
-            return res.status(404).json({ mensagem: "Especialidade não encontrada." }); // 404 Not Found
+            return res.status(404).json({ mensagem: "Especialidade não encontrada." }); 
         }
 
         await deleteEspecialidade(id);

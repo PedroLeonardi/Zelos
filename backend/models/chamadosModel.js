@@ -44,12 +44,11 @@ const updateChamados = (data) => {
     try {
         const id = data.id;
 
-        // CORREÇÃO: Aplicado o operador '?? null' a todos os campos que podem ser nulos ou undefined
         const dadosParaAtualizar = {
             titulo: data.titulo,
             descricao: data.descricao ?? null,
             patrimonio_id: data.patrimonio_id ?? null,
-            servicos_id: data.servicos_id, // Este é NOT NULL, deve sempre existir
+            servicos_id: data.servicos_id, 
             tecnico_id: data.tecnico_id ?? null,
             status: data.status
         };
@@ -65,7 +64,6 @@ const updateChamados2 = (data) => {
     try {
         const id = data.id;
 
-        // CORREÇÃO: Aplicado o operador '?? null' a todos os campos que podem ser nulos ou undefined
         const dadosParaAtualizar = {
             status: data.status
         };
@@ -79,9 +77,7 @@ const updateChamados2 = (data) => {
 
 const updateChamadosJson = (data, id) => {
     try {
-        // Objeto com os dados a serem atualizados.
-        // O operador '??' (nullish coalescing) garante que se o valor for undefined ou null,
-        // ele enviará 'null' para o banco de dados, evitando o erro.
+
         const dadosParaAtualizar = {
             titulo: data.titulo,
             descricao: data.descricao,
@@ -99,8 +95,6 @@ const updateChamadosJson = (data, id) => {
 };
 
 
-
-
 const respondChamados = (data, id) => {
     try {
     
@@ -113,25 +107,21 @@ const respondChamados = (data, id) => {
     }
 }
 
-// 📍 CORREÇÃO APLICADA
-// A lógica estava certa, mas a mensagem de erro foi melhorada para clareza.
+
 const atribuirChamados = (data, id) => {
     try {
-        // A lógica aqui estava correta:
-        // - `id` (do técnico) é o valor a ser inserido.
-        // - `data.chamado_id` é usado para encontrar o chamado a ser atualizado.
+
         return update("chamados", {
             tecnico_id: id
         }, `id = '${data.chamado_id}'`);
     } catch (err) {
-        console.error("Erro ao atribuir o Chamado: ", err); // 👈 MENSAGEM CORRIGIDA
+        console.error("Erro ao atribuir o Chamado: ", err); 
         throw err;
     }
 }
 
 const readFilterChamados = ( filter) => {
     try {
-        console.log(filter, "-----------------------------------------------------------------------------")
         const data = `${filter.key} = '${filter.value}'`
         
         return readAll ("chamados", data)
