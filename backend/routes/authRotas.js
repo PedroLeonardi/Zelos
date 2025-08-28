@@ -29,12 +29,12 @@ router.post('/login', (req, res, next) => {
             funcao: "Usuário"
           };
 
-          setTimeout(async ()=> {
-            await createUser(dadosNovoUsuario);
-          }, 500)
-
           
 
+          await createUser(dadosNovoUsuario);
+
+
+          
           [usuarioDoBanco] = await readUser(user.sAMAccountName);
 
         } catch (error) {

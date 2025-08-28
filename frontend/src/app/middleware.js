@@ -2,14 +2,14 @@
 import { NextResponse } from 'next/server';
 
 export function middleware(request) {
-  const chaveMagica = request.cookies.get('authToken')?.value;
+  const token = request.cookies.get('authToken')?.value;
 
-  const porta = request.nextUrl.pathname;
+  const url = request.nextUrl.pathname;
 
-  const quartosSecretos = ['/admin', '/tecnico', '/usuario'];
-  const estaTentandoEntrarEmQuartoSecreto = quartosSecretos.some(quarto => porta.startsWith(quarto));
+  const rotas = ['/admin', '/tecnico', '/usuario'];
+  const tentativaUrl = rotas.some(quarto => url.startsWith(quarto));
 
-  if (estaTentandoEntrarEmQuartoSecreto && !chaveMagica) {
+  if (tentativaUrl && !token) {
     const urlDaVila = new URL('/', request.url);
     return NextResponse.redirect(urlDaVila);
   }

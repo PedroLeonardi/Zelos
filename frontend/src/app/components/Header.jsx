@@ -50,7 +50,8 @@ export default function Header() {
 
     console.log('Limpando dados locais...');
     localStorage.removeItem('id_usuario');
-    localStorage.removeItem('authToken');
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('funcao');
     console.log('Logging out...');
     
     // Limpa todos os dados do usuário do navegador.

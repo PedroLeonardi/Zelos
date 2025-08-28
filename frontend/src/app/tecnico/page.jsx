@@ -9,14 +9,14 @@ const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24
 const STATUS_CONFIG = {
   'pendente': { title: 'Pendente', color: '#3b82f6' },
   'em andamento': { title: 'Em Andamento', color: '#f97316' },
+  'aguardando aprovação': { title: 'Aguardando Aprovação', color: '#8b5cf6' }, // Novo status
   'concluído': { title: 'Concluído', color: '#16a34a' },
 };
-
-// --- COMPONENTES FILHOS ---
 
 const TicketCard = ({ ticket, onOpenModal, onAtribuir, onIniciar, tecnicoId, servicos, usuarios, patrimonios }) => {
     const isPending = ticket.status === 'pendente';
     const isOwner = ticket.tecnico_id === tecnicoId;
+    const isAwaitingApproval = ticket.status === 'aguardando aprovação';
   
     return (
       <article className={styles.ticketCard} tabIndex={0}>
@@ -25,7 +25,6 @@ const TicketCard = ({ ticket, onOpenModal, onAtribuir, onIniciar, tecnicoId, ser
           <span className={styles.statusBadge} style={{'--status-color': STATUS_CONFIG[ticket.status]?.color}}>{STATUS_CONFIG[ticket.status]?.title}</span>
         </header>
         <h3 className={styles.ticketCard__title}>{ticket.titulo}</h3>
-        {/* Exibe dados dinâmicos carregados da API */}
         <p className={styles.ticketCard__info}><strong>Serviço:</strong> {servicos[ticket.servicos_id] || 'Não encontrado'}</p>
         <p className={styles.ticketCard__info}><strong>Usuário:</strong> {usuarios[ticket.usuario_id] || 'Não encontrado'}</p>
         <p className={styles.ticketCard__info}><strong>Patrimônio:</strong> {patrimonios[ticket.patrimonio_id] || 'N/A'}</p>
@@ -41,9 +40,16 @@ const TicketCard = ({ ticket, onOpenModal, onAtribuir, onIniciar, tecnicoId, ser
                Iniciar Atendimento
              </button>
           )}
-          <button className={`${styles.button} ${styles['button--secondary']}`} onClick={() => onOpenModal(ticket)}>
-            Detalhes
-          </button>
+          {!isAwaitingApproval && (
+            <button className={`${styles.button} ${styles['button--secondary']}`} onClick={() => onOpenModal(ticket)}>
+              Detalhes
+            </button>
+          )}
+          {isAwaitingApproval && (
+            <button className={`${styles.button} ${styles['button--secondary']}`} onClick={() => onOpenModal(ticket)}>
+              Visualizar
+            </button>
+          )}
         </footer>
       </article>
     );
@@ -54,6 +60,7 @@ const ModalContent = ({ ticket, handleFinalizarChamado, handleCreateApontamento,
   
     const isOwner = ticket.tecnico_id === tecnicoId;
     const isInProgress = ticket.status === 'em andamento';
+    const isAwaitingApproval = ticket.status === 'aguardando aprovação';
 
     const formatDateTime = (isoString) => {
         if (!isoString) return 'N/A';
@@ -136,7 +143,6 @@ export default function TecnicoDashboard() {
   const [modalOpen, setModalOpen] = useState(false);
   const [toasters, setToasters] = useState([]);
   
-  // Estados de dados
   const [chamados, setChamados] = useState([]);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [apontamentos, setApontamentos] = useState([]);
@@ -145,15 +151,14 @@ export default function TecnicoDashboard() {
   const [patrimonios, setPatrimonios] = useState({});
   const [tecnicoInfo, setTecnicoInfo] = useState({ id: null, nome: 'Carregando...' });
   
-  // Estados de formulários e filtros
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [sortBy, setSortBy] = useState('recentes');
   const [apontamentoForm, setApontamentoForm] = useState({ descricao: '', comeco: '', fim: '' });
 
-  // Estados de paginação/limite de visualização
   const [pendenteLimit, setPendenteLimit] = useState(5);
   const [emAndamentoLimit, setEmAndamentoLimit] = useState(5);
+  const [aguardandoAprovacaoLimit, setAguardandoAprovacaoLimit] = useState(5); // Novo limite
   const [concluidoLimit, setConcluidoLimit] = useState(5);
 
   const addToaster = useCallback((message, type = 'success') => {
@@ -239,11 +244,12 @@ export default function TecnicoDashboard() {
       });
 
       try {
-        const [pendentes, meusChamados] = await Promise.all([
+        const [pendentes, meusChamados, aguardandoAprovacao] = await Promise.all([ // Adicionado
           postRequest({ key: "status", value: "pendente" }),
-          postRequest({ key: "tecnico_id", value: String(tecnicoInfo.id) })
+          postRequest({ key: "tecnico_id", value: String(tecnicoInfo.id) }),
+          postRequest({ key: "status", value: "aguardando aprovação" }), // Chamados aguardando aprovação
         ]);
-        const allChamados = [...(pendentes || []), ...(meusChamados || [])];
+        const allChamados = [...(pendentes || []), ...(meusChamados || []), ...(aguardandoAprovacao || [])]; // Concatenar
         const uniqueChamados = Array.from(new Map(allChamados.map(c => [c.id, c])).values());
         setChamados(uniqueChamados);
       } catch (error) {
@@ -359,14 +365,13 @@ export default function TecnicoDashboard() {
       return;
     }
     const relatorioData = { relatorio: { descricao: apontamentoForm.descricao } };
-    const success = await updateChamadoStatus(ticketId, 'concluído', relatorioData);
+    const success = await updateChamadoStatus(ticketId, 'aguardando aprovação', relatorioData); // Novo status aqui
     if (success) {
-        setChamados(prev => prev.map(t => t.id === ticketId ? { ...t, status: 'concluído', ...relatorioData } : t));
-        addToaster(`Chamado #${ticketId} finalizado!`, 'success');
+        setChamados(prev => prev.map(t => t.id === ticketId ? { ...t, status: 'aguardando aprovação', ...relatorioData } : t)); // Atualiza para "aguardando aprovação"
+        addToaster(`Chamado #${ticketId} enviado para aprovação!`, 'success');
         handleCloseModal();
     }
   };
-
 
   const handleApontamentoChange = (e) => {
     setApontamentoForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -390,7 +395,7 @@ export default function TecnicoDashboard() {
   const filteredAndSortedChamados = useMemo(() => {
     if (!tecnicoInfo.id) return [];
     
-    let result = chamados.filter(t => t.tecnico_id === tecnicoInfo.id || t.tecnico_id === null);
+    let result = chamados.filter(t => t.tecnico_id === tecnicoInfo.id || t.tecnico_id === null || t.status === 'aguardando aprovação'); // Incluir 'aguardando aprovação' para todos os técnicos
     
     if (statusFilter !== 'todos') {
       result = result.filter(t => t.status === statusFilter);
@@ -402,8 +407,8 @@ export default function TecnicoDashboard() {
       );
     }
     result.sort((a, b) => {
+        const statusOrder = ['em andamento', 'pendente', 'aguardando aprovação', 'concluído']; // Atualiza a ordem de status
         if (sortBy === 'status') {
-            const statusOrder = ['em andamento', 'pendente', 'concluído'];
             return statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status);
         }
         return new Date(b.criado_em) - new Date(a.criado_em);
@@ -444,6 +449,7 @@ export default function TecnicoDashboard() {
                     <option value="todos">Todos os Status</option>
                     <option value="pendente">Pendente</option>
                     <option value="em andamento">Em Andamento</option>
+                    <option value="aguardando aprovação">Aguardando Aprovação</option> {/* Novo filtro */}
                     <option value="concluído">Concluído</option>
                 </select>
                 <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
@@ -460,6 +466,7 @@ export default function TecnicoDashboard() {
             let limit, setLimit;
             if (statusKey === 'pendente') { limit = pendenteLimit; setLimit = setPendenteLimit; }
             else if (statusKey === 'em andamento') { limit = emAndamentoLimit; setLimit = setEmAndamentoLimit; }
+            else if (statusKey === 'aguardando aprovação') { limit = aguardandoAprovacaoLimit; setLimit = setAguardandoAprovacaoLimit; } // Novo limite
             else if (statusKey === 'concluído') { limit = concluidoLimit; setLimit = setConcluidoLimit; }
             const ticketsToDisplay = limit ? columnTickets.slice(0, limit) : columnTickets;
             const hasMoreTickets = limit && columnTickets.length > limit;

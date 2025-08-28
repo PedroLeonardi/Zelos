@@ -127,7 +127,7 @@ const respondChamadosController = async (req, res) => {
 
     try {
         const data = await readFilterChamados({ key: "id", value: req.params.id })
-        if (data.length === 0 || data.status != "concluído") {
+        if (data.length === 0 || data.status != "aguardando aprovação") {
 
             try {
                 await respondChamados(req.body, req.params.id);

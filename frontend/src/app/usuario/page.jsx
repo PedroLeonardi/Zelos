@@ -302,7 +302,10 @@ export default function UsuarioDashboard() {
         };
       });
       const finalTicketsData = await Promise.all(enrichedTicketsPromises);
-      setTickets(finalTicketsData);
+      
+      // Inverter a ordem dos chamados
+      setTickets(finalTicketsData.reverse()); 
+
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
       addToaster("Não foi possível carregar os chamados.", "error");
