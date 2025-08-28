@@ -28,7 +28,12 @@ router.post('/login', (req, res, next) => {
             email: user.userPrincipalName,
             funcao: "Usuário"
           };
-          await createUser(dadosNovoUsuario);
+
+          setTimeout(async ()=> {
+            await createUser(dadosNovoUsuario);
+          }, 500)
+
+          
 
           [usuarioDoBanco] = await readUser(user.sAMAccountName);
 
