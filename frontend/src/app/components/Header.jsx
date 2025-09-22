@@ -73,7 +73,7 @@ export default function Header() {
 
   return (
     <header className="app-header">
-      <div className="logo-container" onClick={() => router.push('/dashboard')}>
+      <div className="logo-container" onClick={() => router.push('/#')}>
         <img src="/SENAI_São_Paulo_logo.png" alt="Logo SENAI" className="logo" />
       </div>
 

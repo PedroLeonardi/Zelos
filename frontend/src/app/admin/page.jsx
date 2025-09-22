@@ -10,7 +10,7 @@ import {
 import styles from './admin.module.css';
 import Header from '../components/Header';
 import {
-    Chart as ChartJS,
+    Chart as ChartJS, 
     CategoryScale,
     LinearScale,
     BarElement,
@@ -264,7 +264,7 @@ function GerenciamentoChamados({ chamados, setChamados, usuarios }) {
                 descricao: c.descricao,
                 patrimonio_id: c.patrimonio_id,
                 numero_patrimonio: c.numero_patrimonio,
-                servicos_id: c.servicos_id,
+                tipo_chamado: c.tipo_chamado,
                 tipo_chamado: c.tipo_chamado,
                 tecnico_id: c.tecnico_id,
                 tecnico_nome: c.tecnico_nome,
@@ -338,7 +338,7 @@ function GerenciamentoChamados({ chamados, setChamados, usuarios }) {
                   titulo: formData.titulo,
                   descricao: formData.descricao,
                   patrimonio_id: formData.patrimonio_id || null,
-                  servicos_id: formData.servicos_id,
+                  tipo_chamado: formData.tipo_chamado,
                   usuario_id: adminUserId, 
                   tecnico_id: formData.tecnico_id || null,
                   status: 'em andamento' 
@@ -637,7 +637,7 @@ function GraficosView({ chamados }) {
 function ChamadoModal({ chamado, onClose, onSave, tecnicos, usuarios, servicos, isSubmitting }) {
     const isCreating = !chamado;
     const [formData, setFormData] = useState({
-        titulo: '', descricao: '', patrimonio_id: '', servicos_id: '',
+        titulo: '', descricao: '', patrimonio_id: '', tipo_chamado: '',
         tecnico_id: '', usuario_id: '', status: 'pendente'
     });
 
@@ -647,14 +647,14 @@ function ChamadoModal({ chamado, onClose, onSave, tecnicos, usuarios, servicos, 
                 titulo: chamado.titulo || '',
                 descricao: chamado.descricao || '',
                 patrimonio_id: (chamado.patrimonio_id || '').toString(),
-                servicos_id: (chamado.servicos_id || '').toString(),
+                tipo_chamado: (chamado.tipo_chamado || '').toString(),
                 tecnico_id: (chamado.tecnico_id || '').toString(),
                 usuario_id: (chamado.usuario_id || '').toString(),
                 status: chamado.status || 'pendente',
             });
         } else {
             setFormData({
-                titulo: '', descricao: '', patrimonio_id: '', servicos_id: '1',
+                titulo: '', descricao: '', patrimonio_id: '', tipo_chamado: '1',
                 tecnico_id: '', usuario_id: '', status: 'pendente'
             });
         }
@@ -664,7 +664,7 @@ function ChamadoModal({ chamado, onClose, onSave, tecnicos, usuarios, servicos, 
     
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!formData.titulo || !formData.servicos_id) {
+        if (!formData.titulo || !formData.tipo_chamado) {
             toast.error('Título e Tipo de Serviço são obrigatórios!');
             return;
         }
@@ -686,8 +686,9 @@ function ChamadoModal({ chamado, onClose, onSave, tecnicos, usuarios, servicos, 
                         <div className={styles.formGroup}><label>Título do Chamado</label><input type="text" name="titulo" value={formData.titulo} onChange={handleChange} required autoFocus maxLength="27" /></div>
                         <div className={styles.formGroup}><label>Descrição do Problema</label><textarea name="descricao" rows="4" value={formData.descricao} onChange={handleChange} required maxLength="148"></textarea></div>
                         <div className={styles.formRow}>
+                            {/* { console.log(formData) } ERRO */}
                             <div className={styles.formGroup}><label>Nº do Patrimônio (Opcional)</label><input type="text" name="patrimonio_id" value={formData.patrimonio_id} onChange={handleChange} maxLength="15" /></div>
-                            <div className={styles.formGroup}><label>Tipo de Serviço</label><select name="servicos_id" value={formData.servicos_id} onChange={handleChange} required><option value="" disabled>Selecione...</option>{servicos.map(s => <option key={s.id} value={s.id}>{s.nome}</option>)}</select></div>
+                            <div className={styles.formGroup}><label>Tipo de Serviço</label><select name="tipo_chamado" value={formData.tipo_chamado} onChange={handleChange} required><option value="" disabled>Selecione...</option>{servicos.map(s => <option key={s.id} value={s.id}>{s.nome}</option>)}</select></div>
                         </div>
                         
                         <div className={styles.formRow}>
