@@ -8,7 +8,6 @@ const updateUserController = async (req, res) => {
 
         if (userData || userData.id_login ){
             try{
-                console.log("RESPOSTA", req.body)
                 await updateUser (req.body, req.params.id || userData )
                 return res.status(200).json({mensagem: "Usuario atualizado com sucesso"})
             } catch (err) {

@@ -46,16 +46,21 @@ const readUserEmail = async (email) => {
 
 const createUser = async (data) =>{
     try {
-         const dataUsuario = {
+        const dataUsuario = {
             nome: data.nome,
             id_login: data.id_login,
             email: data.email,
             funcao: data.funcao
-         }
+        }
 
-         create("usuarios", dataUsuario)
-         return
+        await create("usuarios", dataUsuario) 
+        return
     } catch (err){
+        if (err && err.code === 'ER_DUP_ENTRY') {
+            console.log(`[AVISO] Tentativa de inserir o ID ${data.id_login}, que já existe. Prosseguindo.`);
+            return; 
+        }
+
         console.error("Houve um erro ao criar o usuario: ", err)
         throw err
     }
